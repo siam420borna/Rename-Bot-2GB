@@ -18,7 +18,7 @@ class Config(object):
     ADMIN = [int(admin) if id_pattern.search(admin) else admin for admin in os.environ.get('ADMIN', '').split()]
 
     # channels logs
-    FORCE_SUB   = os.environ.get("FORCE_SUB", "TechifyBots") 
+    FORCE_SUB   = os.environ.get("FORCE_SUB", "movie_channel8") 
     LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", ""))
     BIN_CHANNEL = int(os.environ.get("BIN_CHANNEL", ""))
 

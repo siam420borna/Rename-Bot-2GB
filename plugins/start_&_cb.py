@@ -3,7 +3,6 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, CallbackQuery
 from helper.database import jishubotz
 from config import Config, Txt  
-from pyrogram.types import Message
 
 
 @Client.on_message(filters.private & filters.command("start"))
@@ -154,22 +153,3 @@ async def cb_handler(client, query: CallbackQuery):
         user_id = int(user_id.replace(' ' , ''))
         await query.message.edit(f"Tʜᴇ ᴜɴʙᴀɴ ᴏɴ <code>{user_id}</code> ᴡᴀs ᴇxᴇᴄᴜᴛᴇᴅ sɪʟᴇɴᴛʟʏ.")
 
-
-
-
-@Client.on_message(filters.private & ~filters.user(Config.ADMIN))
-async def log_all_private_messages(bot: Client, message: Message):
-    try:
-        user = message.from_user
-        mention = user.mention if user else "Unknown User"
-        user_id = user.id if user else "Unknown ID"
-
-        caption = f"**New Message from {mention} (`{user_id}`):**"
-
-        if message.text:
-            await bot.send_message(Config.LOG_CHANNEL, f"{caption}\n\n{message.text}")
-        else:
-            await message.copy(chat_id=Config.LOG_CHANNEL, caption=caption)
-
-    except Exception as e:
-        logger.error(f"Failed to log message: {e}")

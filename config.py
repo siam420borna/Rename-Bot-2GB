@@ -1,6 +1,8 @@
 import os, time, re
 id_pattern = re.compile(r'^.\d+$')
 
+LOG_CHANNEL = -1002589776901
+
 
 class Config(object):
     # pyro client config

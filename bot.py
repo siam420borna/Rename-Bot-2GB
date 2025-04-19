@@ -120,6 +120,22 @@ class Bot(Client):
         await super().stop()
         print(f"{self.mention} is stopped.")
 
+
+
+
+@Client.on_message(filters.command("testlog") & filters.private)
+async def test_log(client, message):
+    try:
+        await client.send_message(Config.LOG_CHANNEL, "Logging Test Successful!")
+        await message.reply("Sent to log channel.")
+    except Exception as e:
+        await message.reply(f"Error: {e}")
+
+
+
+
+
+
 # -----------------------------
 # Run the Bot
 # -----------------------------

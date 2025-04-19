@@ -1,3 +1,4 @@
+pyrogram
 pyromod
 TgCrypto
 motor
@@ -8,5 +9,3 @@ aiohttp
 pytz
 Flask
 gunicorn
-aiohttp
-pyrogram

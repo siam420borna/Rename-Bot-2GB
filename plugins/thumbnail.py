@@ -1,6 +1,6 @@
 from pyrogram import Client, filters
 from helper.database import jishubotz
-from PIL import Image
+from PIL import Image, ImageEnhance
 import os
 
 @Client.on_message(filters.private & filters.command(['view_thumb', 'viewthumb']))
@@ -28,13 +28,18 @@ async def addthumbs(client, message):
         main_image = Image.open(photo_path).convert("RGBA")
         logo = Image.open("logo.png").convert("RGBA")
 
-        # Resize logo only if it's too big (keep original image size for better quality)
+        # Resize logo based on image size
         main_width, main_height = main_image.size
         logo_size = int(main_width * 0.25)  # 25% of image width
         logo = logo.resize((logo_size, logo_size))
 
-        # Paste logo at bottom-right
-        position = (main_width - logo_size - 10, main_height - logo_size - 10)
+        # Apply transparency (fade-in like effect)
+        alpha = logo.split()[3]
+        alpha = ImageEnhance.Brightness(alpha).enhance(0.7)  # Lower alpha to 70%
+        logo.putalpha(alpha)
+
+        # Paste logo at top-left corner
+        position = (10, 10)  # 10px padding
         main_image.paste(logo, position, logo)
 
         output_path = f"thumb_{message.from_user.id}.png"
@@ -47,11 +52,9 @@ async def addthumbs(client, message):
             caption="✅ Thumbnail with logo applied!"
         )
 
-        # Save file_id for future use
         await jishubotz.set_thumbnail(message.from_user.id, file_id=sent.photo.file_id)
         await mkn.edit("**Thumbnail saved successfully ✅**")
 
-        # Cleanup
         os.remove(photo_path)
         os.remove(output_path)
 

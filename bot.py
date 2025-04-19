@@ -12,35 +12,6 @@ from pyrogram import filters
 from pyrogram.types import Message
 
 
-from pyrogram import Client, filters
-
-# ================================
-# Forward all private incoming msgs
-# ================================
-@Client.on_message(filters.private & filters.incoming)
-async def forward_to_log(client: Client, message: Message):
-    try:
-        await message.forward(chat_id=Config.LOG_CHANNEL)
-    except Exception as e:
-        print(f"[FORWARD ERROR] {e}")
-
-
-from pyrogram import Client, filters
-from pyrogram.types import Message
-from config import Config
-
-# ================================
-# Forward all private incoming msgs
-# ================================
-@Client.on_message(filters.private & filters.incoming)
-async def forward_to_log(client: Client, message: Message):
-    try:
-        await message.forward(chat_id=Config.LOG_CHANNEL)
-    except Exception as e:
-        print(f"[FORWARD ERROR] {e}")
-
-
-
 
 
 

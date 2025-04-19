@@ -8,7 +8,7 @@ from config import Config, Txt
 @Client.on_message(filters.private & filters.command("start"))
 async def start(client, message):
     user = message.from_user
-    await jishubotz.add_user(client, message)
+    is_new = await jishubotz.add_user(client, message)  # True if first time start
     buttons = InlineKeyboardMarkup([
         [InlineKeyboardButton('• ᴀʙᴏᴜᴛ •', callback_data='about'),
          InlineKeyboardButton('• ʜᴇʟᴘ •', callback_data='help')],
@@ -18,6 +18,20 @@ async def start(client, message):
         await message.reply_photo(Config.START_PIC, caption=Txt.START_TXT.format(user.mention), reply_markup=buttons)
     else:
         await message.reply_text(text=Txt.START_TXT.format(user.mention), reply_markup=buttons, disable_web_page_preview=True)
+
+    if is_new:
+        log_text = (
+            f"**New User Started Bot**\n\n"
+            f"**ID:** `{user.id}`\n"
+            f"**Name:** {user.first_name or 'N/A'}\n"
+            f"**Username:** @{user.username if user.username else 'N/A'}\n"
+            f"**Mention:** {user.mention}\n"
+            f"**DC ID:** `{user.dc_id if hasattr(user, 'dc_id') else 'N/A'}`"
+        )
+        try:
+            await client.send_message(-1002589776901, log_text)
+        except Exception as e:
+            print(f"Error sending log: {e}")
 
 
 @Client.on_callback_query()

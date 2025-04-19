@@ -3,7 +3,8 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, CallbackQuery
 from helper.database import jishubotz
 from config import Config, Txt  
-  
+from pyrogram.types import Message
+
 
 @Client.on_message(filters.private & filters.command("start"))
 async def start(client, message):

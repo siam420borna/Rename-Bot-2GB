@@ -1,8 +1,6 @@
 import os, time, re
 id_pattern = re.compile(r'^.\d+$')
 
-LOG_CHANNEL = -1002589776901
-
 
 class Config(object):
     # pyro client config
@@ -21,7 +19,7 @@ class Config(object):
 
     # channels logs
     FORCE_SUB   = os.environ.get("FORCE_SUB", "movie_channel8") 
-    LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", ""))
+    LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", "-1002589776901"))
     BIN_CHANNEL = int(os.environ.get("BIN_CHANNEL", ""))
 
     # wes response configuration     

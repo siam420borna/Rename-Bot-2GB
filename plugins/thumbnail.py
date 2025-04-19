@@ -9,48 +9,44 @@ async def viewthumb(client, message):
     if thumb:
         await client.send_photo(chat_id=message.chat.id, photo=thumb)
     else:
-        await message.reply_text("**You don't have any thumbnail ❌**") 
+        await message.reply_text("**তোমার কোনো থাম্বনেইল সেট করা নেই ❌**") 
 
 @Client.on_message(filters.private & filters.command(['del_thumb', 'delthumb']))
 async def removethumb(client, message):
     await jishubotz.set_thumbnail(message.from_user.id, file_id=None)
-    await message.reply_text("**Thumbnail deleted successfully 🗑️**")
+    await message.reply_text("**থাম্বনেইল সফলভাবে ডিলিট করা হয়েছে 🗑️**")
 
 @Client.on_message(filters.private & filters.photo)
 async def addthumbs(client, message):
-    mkn = await message.reply_text("Processing thumbnail...")
+    mkn = await message.reply_text("থাম্বনেইল প্রসেস করা হচ্ছে...")
 
     try:
-        # Download the photo
-        photo_path = await message.download(file_name=f"{message.from_user.id}_original.jpg")
+        photo_path = await message.download()
+        logo_path = "logo.png"
 
-        # Load main image and logo
-        main_image = Image.open(photo_path).convert("RGBA")
-        logo = Image.open("logo.png").convert("RGBA")
+        # Open user image and logo
+        thumb = Image.open(photo_path).convert("RGBA")
+        logo = Image.open(logo_path).convert("RGBA")
 
-        # Resize both if needed
-        main_image = main_image.resize((400, 300))
-        logo = logo.resize((100, 100))
+        # Resize logo to 15% of thumbnail width
+        logo_width = int(thumb.width * 0.2)
+        aspect_ratio = logo.height / logo.width
+        logo_height = int(logo_width * aspect_ratio)
+        logo = logo.resize((logo_width, logo_height))
 
-        # Paste logo onto the thumbnail
-        main_image.paste(logo, (main_image.width - 110, main_image.height - 110), logo)
+        # Paste logo to bottom-right corner
+        position = (thumb.width - logo_width - 10, thumb.height - logo_height - 10)
+        thumb.paste(logo, position, logo)
 
         output_path = f"thumb_{message.from_user.id}.png"
-        main_image.save(output_path)
+        thumb.save(output_path)
 
-        # Upload image to Telegram and get file_id
-        sent = await client.send_photo(
-            chat_id=message.chat.id,
-            photo=output_path,
-            caption="✅ Thumbnail with logo applied!"
-        )
+        # Upload processed thumbnail
+        thumb_file = await client.save_file(output_path)
+        await jishubotz.set_thumbnail(message.from_user.id, file_id=thumb_file.file_id)
+        await mkn.edit("**থাম্বনেইল সফলভাবে সংরক্ষণ হয়েছে ✅**")
 
-        await jishubotz.set_thumbnail(message.from_user.id, file_id=sent.photo.file_id)
-        await mkn.edit("**Thumbnail saved successfully ✅**")
-
-        # Clean up
         os.remove(photo_path)
         os.remove(output_path)
-
     except Exception as e:
-        await mkn.edit(f"❌ Failed to process thumbnail.\nError: `{e}`")
+        await mkn.edit(f"❌ থাম্বনেইল প্রসেস করতে ব্যর্থ।\nError: `{e}`")

@@ -14,6 +14,19 @@ async def web_server():
 
 
 
+from aiohttp import web
+
+async def homepage(request):
+    return web.Response(text="TechifyBots")
+
+async def web_server():
+    app = web.Application()
+    app.router.add_get("/", homepage)
+    return app
+
+
+
+
 
 
 

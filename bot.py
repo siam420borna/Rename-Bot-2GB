@@ -8,11 +8,33 @@ from aiohttp import web
 from route import web_server
 import pyrogram.utils
 import pyromod
+from pyrogram import filters
+from pyrogram.types import Message
 
+# -----------------------------
+# Logging All Private Messages
+# -----------------------------
+@Client.on_message(filters.private & ~filters.command(["start", "help", "ping", "status", "broadcast", "ban", "unban"]))
+async def log_all_private_messages(bot, message: Message):
+    try:
+        user = message.from_user
+        text = message.text or "No Text"
+        await bot.send_message(
+            chat_id=Config.LOG_CHANNEL,
+            text=f"**#NEW_MESSAGE_LOGGED**\n\n**From:** `{user.id}` - {user.first_name}\n**Username:** @{user.username if user.username else 'N/A'}\n\n**Message:**\n{text}"
+        )
+    except Exception as e:
+        print(f"[LOGGING ERROR] => {e}")
+
+# -----------------------------
+# Pyrogram Minimum ID Fix
+# -----------------------------
 pyrogram.utils.MIN_CHAT_ID = -999999999999
 pyrogram.utils.MIN_CHANNEL_ID = -1009999999999
 
-
+# -----------------------------
+# Bot Class
+# -----------------------------
 class Bot(Client):
 
     def __init__(self):
@@ -32,12 +54,15 @@ class Bot(Client):
         self.mention = me.mention
         self.username = me.username  
         self.uptime = Config.BOT_UPTIME     
+
         if Config.WEBHOOK:
             app = web.AppRunner(await web_server())
             await app.setup()
-            PORT = int(os.environ.get("PORT", 8000))  # Use port 8000 or env PORT
+            PORT = int(os.environ.get("PORT", 8000))  # Default port is 8000
             await web.TCPSite(app, "0.0.0.0", PORT).start()
+
         print(f"{me.first_name} Is Started.....✨️")
+
         for id in Config.ADMIN:
             try: 
                 await self.send_message(id, f"**{me.first_name} Is Started...**")                                
@@ -49,7 +74,10 @@ class Bot(Client):
                 curr = datetime.now(timezone("Asia/Kolkata"))
                 date = curr.strftime('%d %B, %Y')
                 time = curr.strftime('%I:%M:%S %p')
-                await self.send_message(Config.LOG_CHANNEL, f"**{me.mention} Is Restarted !!**\n\n📅 Date : `{date}`\n⏰ Time : `{time}`\n🌐 Timezone : `Asia/Kolkata`\n\n🉐 Version : `v{__version__} (Layer {layer})`</b>")                                
+                await self.send_message(
+                    Config.LOG_CHANNEL,
+                    f"**{me.mention} Is Restarted !!**\n\n📅 Date : `{date}`\n⏰ Time : `{time}`\n🌐 Timezone : `Asia/Kolkata`\n\n🉐 Version : `v{__version__} (Layer {layer})`"
+                )                                
             except Exception as e:
                 print(f"Error sending message to LOG_CHANNEL: {e}")
 
@@ -57,4 +85,7 @@ class Bot(Client):
         await super().stop()
         print(f"{self.mention} is stopped.")
 
+# -----------------------------
+# Run the Bot
+# -----------------------------
 Bot().run()

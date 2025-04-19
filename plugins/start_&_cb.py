@@ -57,6 +57,46 @@ async def start(client, message):
 # -------------------- Callback Query Handler --------------------
 
 @Client.on_callback_query()
+
+
+
+elif data == "profile":
+        user = query.from_user
+        text = f"""
+**Your Profile**
+━━━━━━━━━━━━━━━━━
+**Name:** {user.first_name}
+**Username:** @{user.username if user.username else 'N/A'}
+**User ID:** `{user.id}`
+**Premium User:** {"Yes" if user.is_premium else "No"}
+━━━━━━━━━━━━━━━━━
+        """
+        await query.message.edit(
+            text=text,
+            reply_markup=BACK_CLOSE
+        )
+
+    elif data == "settings":
+        await query.message.edit(
+            text="""
+**Settings Panel**
+━━━━━━━━━━━━━━━━━
+Here you will be able to configure:
+• Custom Thumbnail
+• Caption Templates
+• Prefix/Suffix
+• Auto Rename Mode
+
+(This section is under development!)
+━━━━━━━━━━━━━━━━━
+            """,
+            reply_markup=BACK_CLOSE
+        )
+
+
+
+
+
 async def cb_handler(client, query: CallbackQuery):
     data = query.data 
 

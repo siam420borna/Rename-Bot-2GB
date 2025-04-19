@@ -21,31 +21,29 @@ async def addthumbs(client, message):
     mkn = await message.reply_text("Processing thumbnail...")
 
     try:
-        # Download the photo
         photo_path = await message.download(file_name=f"{message.from_user.id}_original.jpg")
 
         # Open main image and logo
         main_image = Image.open(photo_path).convert("RGBA")
         logo = Image.open("logo.png").convert("RGBA")
 
-        # Resize logo based on image size
+        # Resize logo to small TV-style (10% of width)
         main_width, main_height = main_image.size
-        logo_size = int(main_width * 0.25)  # 25% of image width
+        logo_size = int(main_width * 0.1)  # 10% of image width
         logo = logo.resize((logo_size, logo_size))
 
-        # Apply transparency (fade-in like effect)
+        # Add transparency
         alpha = logo.split()[3]
-        alpha = ImageEnhance.Brightness(alpha).enhance(0.7)  # Lower alpha to 70%
+        alpha = ImageEnhance.Brightness(alpha).enhance(0.6)  # 60% opacity
         logo.putalpha(alpha)
 
-        # Paste logo at top-left corner
-        position = (10, 10)  # 10px padding
+        # Paste at top-left
+        position = (15, 15)
         main_image.paste(logo, position, logo)
 
         output_path = f"thumb_{message.from_user.id}.png"
         main_image.save(output_path, "PNG")
 
-        # Send back and save file_id
         sent = await client.send_photo(
             chat_id=message.chat.id,
             photo=output_path,

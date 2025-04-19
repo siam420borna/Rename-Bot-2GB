@@ -24,29 +24,29 @@ async def addthumbs(client, message):
         photo_path = await message.download()
         logo_path = "logo.png"
 
-        # Open user image and logo
         thumb = Image.open(photo_path).convert("RGBA")
         logo = Image.open(logo_path).convert("RGBA")
 
-        # Resize logo to 20% of thumbnail width
         logo_width = int(thumb.width * 0.2)
         aspect_ratio = logo.height / logo.width
         logo_height = int(logo_width * aspect_ratio)
         logo = logo.resize((logo_width, logo_height))
 
-        # Paste logo to bottom-right corner with padding
         position = (thumb.width - logo_width - 10, thumb.height - logo_height - 10)
         thumb.paste(logo, position, logo)
 
         output_path = f"thumb_{message.from_user.id}.png"
         thumb.save(output_path)
 
-        # Upload processed thumbnail
-        thumb_file = await client.save_file(output_path)
-        await jishubotz.set_thumbnail(message.from_user.id, file_id=thumb_file.file_id)
+        # Upload and get file_id from the sent message
+        sent = await client.send_photo(chat_id=message.chat.id, photo=output_path, caption="Thumbnail preview with logo.")
+        file_id = sent.photo.file_id
+
+        await jishubotz.set_thumbnail(message.from_user.id, file_id=file_id)
         await mkn.edit("**Thumbnail saved successfully ✅**")
 
         os.remove(photo_path)
         os.remove(output_path)
+
     except Exception as e:
         await mkn.edit(f"❌ Failed to process thumbnail.\nError: `{e}`")

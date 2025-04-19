@@ -18,33 +18,37 @@ async def removethumb(client, message):
 
 @Client.on_message(filters.private & filters.photo)
 async def addthumbs(client, message):
-    mkn = await message.reply_text("Processing your thumbnail...")
+    mkn = await message.reply_text("Processing thumbnail...")
 
     try:
-        photo_path = await message.download()
-        logo_path = "logo.png"
+        # Download the photo
+        photo_path = await message.download(file_name=f"{message.from_user.id}_original.jpg")
 
-        thumb = Image.open(photo_path).convert("RGBA")
-        logo = Image.open(logo_path).convert("RGBA")
+        # Load main image and logo
+        main_image = Image.open(photo_path).convert("RGBA")
+        logo = Image.open("logo.png").convert("RGBA")
 
-        logo_width = int(thumb.width * 0.2)
-        aspect_ratio = logo.height / logo.width
-        logo_height = int(logo_width * aspect_ratio)
-        logo = logo.resize((logo_width, logo_height))
+        # Resize both if needed
+        main_image = main_image.resize((400, 300))
+        logo = logo.resize((100, 100))
 
-        position = (thumb.width - logo_width - 10, thumb.height - logo_height - 10)
-        thumb.paste(logo, position, logo)
+        # Paste logo onto the thumbnail
+        main_image.paste(logo, (main_image.width - 110, main_image.height - 110), logo)
 
         output_path = f"thumb_{message.from_user.id}.png"
-        thumb.save(output_path)
+        main_image.save(output_path)
 
-        # Upload and get file_id from the sent message
-        sent = await client.send_photo(chat_id=message.chat.id, photo=output_path, caption="Thumbnail preview with logo.")
-        file_id = sent.photo.file_id
+        # Upload image to Telegram and get file_id
+        sent = await client.send_photo(
+            chat_id=message.chat.id,
+            photo=output_path,
+            caption="✅ Thumbnail with logo applied!"
+        )
 
-        await jishubotz.set_thumbnail(message.from_user.id, file_id=file_id)
+        await jishubotz.set_thumbnail(message.from_user.id, file_id=sent.photo.file_id)
         await mkn.edit("**Thumbnail saved successfully ✅**")
 
+        # Clean up
         os.remove(photo_path)
         os.remove(output_path)
 

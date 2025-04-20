@@ -24,15 +24,17 @@ async def addthumbs(client, message):
     try:
         file_path = await message.download(file_name=f"{message.from_user.id}_temp")
 
-        # If it's a video, extract a high-res thumbnail
+        # Determine thumbnail path
         if message.photo:
             thumb_path = file_path
         else:
             thumb_path = f"{file_path}_thumb.jpg"
             cmd = [
-                "ffmpeg", "-i", file_path,
-                "-ss", "00:00:01.000", "-vframes", "1",
-                "-vf", "scale=1280:-1",
+                "ffmpeg", "-ss", "00:00:01.000",
+                "-i", file_path,
+                "-vframes", "1",
+                "-q:v", "2",
+                "-vf", "scale=-1:720",
                 thumb_path
             ]
             subprocess.run(cmd, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
@@ -55,9 +57,9 @@ async def addthumbs(client, message):
         position = (main_width - logo_size - 15, 15)
         main_image.paste(logo, position, logo)
 
-        # Save final image
-        output_path = f"thumb_{message.from_user.id}.png"
-        main_image.save(output_path, "PNG")
+        # Save final image as JPEG
+        output_path = f"thumb_{message.from_user.id}.jpg"
+        main_image.convert("RGB").save(output_path, "JPEG", quality=95)
 
         sent = await client.send_photo(
             chat_id=message.chat.id,

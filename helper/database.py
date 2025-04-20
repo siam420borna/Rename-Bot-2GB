@@ -121,9 +121,3 @@ class Database:
 
 # Instantiate Database
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)
-
-
-
-
-
-

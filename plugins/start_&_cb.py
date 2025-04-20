@@ -3,7 +3,7 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQ
 from helper.database import jishubotz
 from config import Config, Txt
 from helper.database import set_watermark, get_watermark, del_watermark
-
+from pyrogram.types import Message
 
 @Client.on_message(filters.private & filters.command("start"))
 async def start(client, message):

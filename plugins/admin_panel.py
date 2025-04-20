@@ -99,7 +99,7 @@ from pyrogram import filters
 from pyrogram.types import Message
 from helper.database import add_premium, remove_premium, is_premium
 
-ADMINS = [12345678]  # replace with your own Telegram user ID
+ADMINS = [7862181538]  # replace with your own Telegram user ID
 
 @app.on_message(filters.command("addpremium") & filters.user(ADMINS))
 async def cmd_add_premium(_, m: Message):

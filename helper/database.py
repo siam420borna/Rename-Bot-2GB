@@ -119,5 +119,37 @@ class Database:
             return True
         return False
 
+
+
+
+
+#gpt
+
+
+import asyncio
+from pyrogram.types import User
+from your_database_lib import db  # replace with your own DB method if needed
+
+# Add a user to premium list
+async def add_premium(user_id: int):
+    await db.premium.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
+
+# Remove a user from premium list
+async def remove_premium(user_id: int):
+    await db.premium.delete_one({"_id": user_id})
+
+# Check if user is premium
+async def is_premium(user_id: int):
+    user = await db.premium.find_one({"_id": user_id})
+    return bool(user and user.get("premium", False))
+
+
+
+
+
+
+
+
+
 # Instantiate Database
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)

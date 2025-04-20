@@ -117,20 +117,14 @@ class Database:
             return True
         return False
 
+
 # Instantiate the DB
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)
 
+# db reference
+db = jishubotz.jishubotz
 
-
-async def total_users():
-    from . import db
-    users = await db.total_users()
-    return users
-
-
-
-# helper/database.py ফাইলে add করো
-
+# Watermark functions
 async def set_watermark(user_id, text):
     await db.user_data.update_one(
         {"_id": user_id}, {"$set": {"watermark": text}}, upsert=True

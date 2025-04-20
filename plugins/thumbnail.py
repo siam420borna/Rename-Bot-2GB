@@ -84,7 +84,12 @@ async def addthumbs(client, message):
                 font = ImageFont.truetype("arial.ttf", size=36)
             except:
                 font = ImageFont.load_default()
-            text_width, text_height = draw.textsize(watermark_text, font=font)
+
+            # Use textbbox instead of textsize (Pillow >= 10.0)
+            bbox = draw.textbbox((0, 0), watermark_text, font=font)
+            text_width = bbox[2] - bbox[0]
+            text_height = bbox[3] - bbox[1]
+
             x = 15
             y = main_height - text_height - 15
             draw.text((x, y), watermark_text, font=font, fill=(255, 255, 255, 180))

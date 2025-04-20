@@ -14,7 +14,11 @@ async def admin_panel(client, message):
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("📊 অবস্থা", callback_data="status"),
          InlineKeyboardButton("♻️ রিস্টার্ট", callback_data="restart")],
-        [InlineKeyboardButton("📣 সম্প্রচার", callback_data="broadcast")],
+        [InlineKeyboardButton("📣 সম্প্রচার", callback_data="broadcast"),
+         InlineKeyboardButton("🛑 বট বন্ধ", callback_data="stop_bot")],
+        [InlineKeyboardButton("🚫 ইউজার ব্যান", callback_data="ban_user"),
+         InlineKeyboardButton("✅ ইউজার আনব্যান", callback_data="unban_user")],
+        [InlineKeyboardButton("🔍 ইউজার খোঁজ", callback_data="search_user")],
         [InlineKeyboardButton("❌ বন্ধ করুন", callback_data="close")]
     ])
     await message.reply("**🔐 অ্যাডমিন কন্ট্রোল প্যানেল**", reply_markup=keyboard)
@@ -43,6 +47,20 @@ async def admin_callbacks(client, query: CallbackQuery):
 
     elif data == "broadcast":
         await query.message.edit("**ℹ️ সম্প্রচার করতে একটি মেসেজে রিপ্লাই করে `/broadcast` লিখুন।**")
+
+    elif data == "stop_bot":
+        await query.message.edit("🛑 বট বন্ধ করা হচ্ছে...")
+        # Code to stop the bot or maintenance mode (you can use a flag)
+        pass
+
+    elif data == "ban_user":
+        await query.message.edit("**ℹ️ ব্যান করার জন্য ইউজারের আইডি লিখুন।**")
+
+    elif data == "unban_user":
+        await query.message.edit("**ℹ️ আনব্যান করার জন্য ইউজারের আইডি লিখুন।**")
+
+    elif data == "search_user":
+        await query.message.edit("**ℹ️ ইউজারের আইডি দিয়ে খোঁজা শুরু করুন।**")
 
     elif data == "close":
         try:
@@ -121,6 +139,38 @@ async def broadcast_handler(client: Client, message: Message):
         f"✅ **সম্প্রচার শেষ!**\n\nসময় লেগেছে: `{duration}`\n"
         f"মোট: {total}\n✅ সফল: {success}\n❌ ব্যর্থ: {failed}"
     )
+
+# Ban/Unban user
+@Client.on_message(filters.command("ban") & filters.user(Config.ADMIN))
+async def ban_user(client, message: Message):
+    user_id = int(message.text.split()[1])
+    try:
+        await client.ban_chat_member(Config.CHAT_ID, user_id)
+        await message.reply(f"✅ ইউজার `{user_id}` সফলভাবে ব্যান করা হয়েছে।")
+    except Exception as e:
+        await message.reply(f"❌ ব্যান করার সময় সমস্যা হয়েছে: {e}")
+
+@Client.on_message(filters.command("unban") & filters.user(Config.ADMIN))
+async def unban_user(client, message: Message):
+    user_id = int(message.text.split()[1])
+    try:
+        await client.unban_chat_member(Config.CHAT_ID, user_id)
+        await message.reply(f"✅ ইউজার `{user_id}` সফলভাবে আনব্যান করা হয়েছে।")
+    except Exception as e:
+        await message.reply(f"❌ আনব্যান করার সময় সমস্যা হয়েছে: {e}")
+
+# Search user by ID
+@Client.on_message(filters.command("search") & filters.user(Config.ADMIN))
+async def search_user(client, message: Message):
+    user_id = int(message.text.split()[1])
+    user = await jishubotz.get_user_by_id(user_id)
+    if user:
+        await message.reply(f"**ইউজারের তথ্য:**\n\n"
+                             f"🆔 ইউজার আইডি: `{user['_id']}`\n"
+                             f"👤 নাম: {user['first_name']}\n"
+                             f"📅 যোগদান তারিখ: {user['join_date']}")
+    else:
+        await message.reply("❌ ইউজার পাওয়া যায়নি।")
 
 # Broadcast message function
 async def send_broadcast(user_id, message):

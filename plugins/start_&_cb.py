@@ -216,27 +216,3 @@ async def set_thumb_size(client, message):
 
 
 
-
-#chatgpt
-
-
-
-from helper.database import set_batch_mode, get_batch_mode
-from pyrogram import Client, filters
-from pyrogram.types import Message
-
-@Client.on_message(filters.command("batchmode"))
-async def batch_mode_handler(c: Client, m: Message):
-    if len(m.command) < 2:
-        return await m.reply_text("**To enable or disable batch mode:**\n\n`/batchmode on`\n`/batchmode off`")
-
-    arg = m.command[1].lower()
-
-    if arg == "on":
-        await set_batch_mode(m.from_user.id, True)
-        await m.reply_text("✅ Batch mode has been **enabled**. You can now send multiple files to rename/upload.")
-    elif arg == "off":
-        await set_batch_mode(m.from_user.id, False)
-        await m.reply_text("❌ Batch mode has been **disabled**. Each file will be processed separately.")
-    else:
-        await m.reply_text("❗Invalid option!\nUse:\n`/batchmode on`\n`/batchmode off`")

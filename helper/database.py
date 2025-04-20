@@ -126,3 +126,19 @@ async def total_users():
     from . import db
     users = await db.total_users()
     return users
+
+
+
+# helper/database.py ফাইলে add করো
+
+async def set_watermark(user_id, text):
+    await db.user_data.update_one(
+        {"_id": user_id}, {"$set": {"watermark": text}}, upsert=True
+    )
+
+async def get_watermark(user_id):
+    user = await db.user_data.find_one({"_id": user_id})
+    return user.get("watermark") if user else None
+
+async def del_watermark(user_id):
+    await db.user_data.update_one({"_id": user_id}, {"$unset": {"watermark": ""}})

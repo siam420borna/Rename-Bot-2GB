@@ -91,6 +91,31 @@ async def add_metadata(input_path, output_path, metadata, ms):
         return None
 
 
+#gpt
+
+
+
+
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from helper.database import is_premium
+
+@Client.on_message(filters.command("premiuminfo"))
+async def premium_info(client, m: Message):
+    if not await is_premium(m.from_user.id):
+        return await m.reply("This feature is only for Premium users.")
+
+    await m.reply(
+        "<b>Welcome Premium User!</b>\n\n"
+        "Here are your benefits:\n"
+        "- Unlimited file renaming\n"
+        "- Custom watermark support\n"
+        "- Fast processing speed\n"
+        "- Priority support\n\n"
+        "Thanks for supporting us!"
+    )
+
+
 
 
 

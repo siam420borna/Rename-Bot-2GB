@@ -4,7 +4,7 @@ import asyncio
 from PIL import Image, ImageEnhance
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
-from helper.ffmpeg import fix_thumb, take_screen_shot, add_metadata
+
 
 async def fix_thumb(thumb):
     width = 0
@@ -18,17 +18,11 @@ async def fix_thumb(thumb):
             if metadata.has("height"):
                 height = metadata.get("height")
 
-            # Enhance image using PIL
             with Image.open(thumb) as img:
                 img = img.convert("RGB")
-                
-                # Optional: Resize back to original resolution
                 resized_img = img.resize((width, height))
-
-                # Enhance brightness/contrast (optional tweak)
                 enhancer = ImageEnhance.Sharpness(resized_img)
                 enhanced_img = enhancer.enhance(1.3)
-
                 enhanced_img.save(thumb, "JPEG", quality=95)
 
             parser.close()
@@ -43,12 +37,12 @@ async def take_screen_shot(video_file, output_directory, ttl):
     out_put_file_name = f"{output_directory}/{int(time.time())}_thumb.jpg"
     file_genertor_command = [
         "ffmpeg",
-        "-ss", str(ttl),                 # Capture frame at given time
-        "-i", video_file,               # Input file
-        "-vframes", "1",                # One frame only
-        "-q:v", "1",                    # Best quality (1 is best, 31 is worst)
-        "-vf", "scale=1280:-1",         # Width 1280px, height auto (maintain aspect ratio)
-        "-y",                           # Overwrite output
+        "-ss", str(ttl),
+        "-i", video_file,
+        "-vframes", "1",
+        "-q:v", "1",
+        "-vf", "scale=1280:-1",
+        "-y",
         out_put_file_name
     ]
 
@@ -67,7 +61,8 @@ async def add_metadata(input_path, output_path, metadata, ms):
     try:
         await ms.edit("<i>I Found Metadata, Adding Into Your File ⚡</i>")
         command = [
-            'ffmpeg', '-y', '-i', input_path, '-map', '0', '-c:s', 'copy', '-c:a', 'copy', '-c:v', 'copy',
+            'ffmpeg', '-y', '-i', input_path, '-map', '0',
+            '-c:s', 'copy', '-c:a', 'copy', '-c:v', 'copy',
             '-metadata', f'title={metadata}',
             '-metadata', f'author={metadata}',
             '-metadata:s:s', f'title={metadata}',
@@ -76,7 +71,7 @@ async def add_metadata(input_path, output_path, metadata, ms):
             '-metadata', f'artist={metadata}',
             output_path
         ]
-        
+
         process = await asyncio.create_subprocess_exec(
             *command,
             stdout=asyncio.subprocess.PIPE,
@@ -93,6 +88,6 @@ async def add_metadata(input_path, output_path, metadata, ms):
             await ms.edit("<i>Failed To Add Metadata To Your File ❌</i>")
             return None
     except Exception as e:
-        print(f"Error occurred while adding metadata: {str(e)}")
-        await ms.edit("<i>An Error Occurred While Adding Metadata To Your File ❌</i>")
+        print(f"Error while adding metadata: {str(e)}")
+        await ms.edit("<i>An Error Occurred While Adding Metadata ❌</i>")
         return None

@@ -99,7 +99,35 @@ async def add_metadata(input_path, output_path, metadata, ms):
         return None
 
 
+#gpt
 
+
+video_path = await add_watermark_to_video(video_path, m.from_user.id)
+
+
+
+import os
+import asyncio
+
+async def add_watermark_to_video(video_path, user_id):
+    watermark_path = f"watermarks/{user_id}.png"
+    
+    if not os.path.exists(watermark_path):
+        return video_path  # No watermark, return original
+    
+    output_path = f"{video_path}_watermarked.mp4"
+    
+    cmd = f"""
+    ffmpeg -i "{video_path}" -i "{watermark_path}" -filter_complex "[0:v][1:v] overlay=W-w-10:H-h-10" \
+    -c:a copy -y "{output_path}"
+    """
+    process = await asyncio.create_subprocess_shell(cmd)
+    await process.communicate()
+
+    if os.path.exists(output_path):
+        return output_path
+    else:
+        return video_path
 
 
 

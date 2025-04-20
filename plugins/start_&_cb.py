@@ -1,99 +1,154 @@
-import time
-import os
-import asyncio
-from PIL import Image
-from hachoir.metadata import extractMetadata
-from hachoir.parser import createParser
+import random
 from pyrogram import Client, filters
-from pyrogram.types import Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, ForceReply, CallbackQuery
+from helper.database import jishubotz
+from config import Config, Txt  
+  
 
-# Fix Thumbnail
-async def fix_thumb(thumb):
-    width = 0
-    height = 0
-    try:
-        if thumb:
-            parser = createParser(thumb)
-            metadata = extractMetadata(parser)
-            if metadata.has("width"):
-                width = metadata.get("width")
-            if metadata.has("height"):
-                height = metadata.get("height")
+@Client.on_message(filters.private & filters.command("start"))
+async def start(client, message):
+    user = message.from_user
+    await jishubotz.add_user(client, message)                
+    button = InlineKeyboardMarkup([
+        [InlineKeyboardButton('• ᴀʙᴏᴜᴛ •', callback_data='about'),
+        InlineKeyboardButton('• ʜᴇʟᴘ •', callback_data='help')],
+        [InlineKeyboardButton("♻ ᴅᴇᴠᴇʟᴏᴘᴇʀ ♻", url='https://telegram.me/TechifyRahul')]
+    ])
+    if Config.START_PIC:
+        await message.reply_photo(Config.START_PIC, caption=Txt.START_TXT.format(user.mention), reply_markup=button)       
+    else:
+        await message.reply_text(text=Txt.START_TXT.format(user.mention), reply_markup=button, disable_web_page_preview=True)
+   
 
-            with Image.open(thumb) as img:
-                img.convert("RGB").save(thumb)
-                resized_img = img.resize((width, height))
-                resized_img.save(thumb, "JPEG")
-
-            parser.close()
-    except Exception as e:
-        print(e)
-        thumb = None
-    return width, height, thumb
-
-# Screenshot from Video
-async def take_screen_shot(video_file, output_directory, ttl):
-    out_put_file_name = f"{output_directory}/{time.time()}.jpg"
-    file_genertor_command = [
-        "ffmpeg", "-ss", str(ttl), "-i", video_file, "-vframes", "1", out_put_file_name
-    ]
-    process = await asyncio.create_subprocess_exec(
-        *file_genertor_command, stdout=asyncio.subprocess.PIPE, stderr=asyncio.subprocess.PIPE
-    )
-    stdout, stderr = await process.communicate()
-    e_response = stderr.decode().strip()
-    t_response = stdout.decode().strip()
-    if os.path.lexists(out_put_file_name):
-        return out_put_file_name
-    return None
-
-# Add Metadata to Video/File
-async def add_metadata(input_path, output_path, metadata, ms):
-    try:
-        await ms.edit("<i>I Found Metadata, Adding Into Your File ⚡</i>")
-        command = [
-            'ffmpeg', '-y', '-i', input_path, '-map', '0', '-c:s', 'copy', '-c:a', 'copy',
-            '-c:v', 'copy', '-metadata', f'title={metadata}', '-metadata', f'author={metadata}',
-            '-metadata:s:s', f'title={metadata}', '-metadata:s:a', f'title={metadata}',
-            '-metadata:s:v', f'title={metadata}', '-metadata', f'artist={metadata}', output_path
-        ]
-        process = await asyncio.create_subprocess_exec(
-            *command,
-            stdout=asyncio.subprocess.PIPE,
-            stderr=asyncio.subprocess.PIPE,
+@Client.on_callback_query()
+async def cb_handler(client, query: CallbackQuery):
+    data = query.data 
+    if data == "start":
+        await query.message.edit_text(
+            text=Txt.START_TXT.format(query.from_user.mention),
+            disable_web_page_preview=True,
+            reply_markup = InlineKeyboardMarkup([
+                [InlineKeyboardButton('• ᴀʙᴏᴜᴛ •', callback_data='about'),
+                InlineKeyboardButton('• ʜᴇʟᴘ •', callback_data='help')],
+                [InlineKeyboardButton("♻ ᴅᴇᴠᴇʟᴏᴘᴇʀ ♻", url='https://telegram.me/TechifyRahul')]
+            ])
         )
-        stdout, stderr = await process.communicate()
-        print(stderr.decode().strip())
-        print(stdout.decode().strip())
+    elif data == "help":
+        await query.message.edit_text(
+            text=Txt.HELP_TXT,
+            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup([
+		[InlineKeyboardButton("sᴇᴛ ᴍᴇᴛᴀᴅᴀᴛᴀ", callback_data = "meta")],
+                [InlineKeyboardButton("ᴘʀᴇꜰɪx", callback_data = "prefix"),
+                InlineKeyboardButton("sᴜꜰꜰɪx", callback_data = "suffix")],
+		[InlineKeyboardButton("ᴄᴀᴘᴛɪᴏɴ", callback_data = "caption"),
+                InlineKeyboardButton("ᴛʜᴜᴍʙɴᴀɪʟ", callback_data = "thumbnail")],
+		[InlineKeyboardButton("ʜᴏᴍᴇ", callback_data = "start")]
+            ])            
+        )
 
-        if os.path.exists(output_path):
-            await ms.edit("<i>Metadata Has Been Successfully Added To Your File ✅</i>")
-            return output_path
+    elif data == "meta":
+        await query.message.edit_caption(
+            caption=Txt.SEND_METADATA,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"), InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+            ])
+	)
+
+    elif data == "prefix":
+        await query.message.edit_caption(
+            caption=Txt.PREFIX,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"), InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+            ])
+	)
+
+    elif data == "suffix":
+        await query.message.edit_caption(
+            caption=Txt.SUFFIX,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"), InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+            ])
+	)
+
+    elif data == "caption":
+        await query.message.edit_caption(
+            caption=Txt.CAPTION_TXT,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"), InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+            ])
+	)
+
+    elif data == "thumbnail":
+        await query.message.edit_caption(
+            caption=Txt.THUMBNAIL_TXT,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"), InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+            ])
+	)
+
+    elif data == "about":
+        await query.message.edit_text(
+            text=Txt.ABOUT_TXT,
+            disable_web_page_preview = True,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("👨‍💻  ʀᴇᴘᴏ", url="https://github.com/TechifyBots"),
+                InlineKeyboardButton("💥  ᴅᴏɴᴀᴛᴇ", callback_data="donate")],
+		[InlineKeyboardButton("ʜᴏᴍᴇ", callback_data="start")]
+            ])            
+        )
+
+    elif data == "donate":
+        await query.message.edit_text(
+            text=Txt.DONATE_TXT,
+            disable_web_page_preview = True,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🤖 ᴍᴏʀᴇ ʙᴏᴛs", url="https://telegram.me/TechifyBots/8")],
+                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data = "about"),
+                InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data = "close")]
+            ])            
+	)
+
+    elif data == "close":
+        try:
+            await query.message.delete()
+            await query.message.reply_to_message.delete()
+            await query.message.continue_propagation()
+        except:
+            await query.message.delete()
+            await query.message.continue_propagation()
+
+    elif data.startswith("sendAlert"):
+        user_id =(data.split("_")[1])
+        user_id = int(user_id.replace(' ' , ''))
+        if len(str(user_id)) == 10:
+            reason = str(data.split("_")[2])
+            try:
+                await client.send_message(user_id , f"<b>ʏᴏᴜ ᴀʀᴇ ʙᴀɴɴᴇᴅ ʙʏ [ʀᴀʜᴜʟ](https://telegram.me/callownerbot)\nʀᴇᴀsᴏɴ : {reason}</b>")
+                await query.message.edit(f"<b>Aʟᴇʀᴛ sᴇɴᴛ ᴛᴏ <code>{user_id}</code>\nʀᴇᴀsᴏɴ : {reason}</b>")
+            except Exception as e:
+                await query.message.edit(f"<b>sʀʏ ɪ ɢᴏᴛ ᴛʜɪs ᴇʀʀᴏʀ : {e}</b>")
         else:
-            await ms.edit("<i>Failed To Add Metadata To Your File ❌</i>")
-            return None
-    except Exception as e:
-        print(f"Error occurred while adding metadata: {str(e)}")
-        await ms.edit("<i>An Error Occurred While Adding Metadata To Your File ❌</i>")
-        return None
+            await query.message.edit(f"<b>Tʜᴇ ᴘʀᴏᴄᴇss ᴡᴀs ɴᴏᴛ ᴄᴏᴍᴘʟᴇᴛᴇᴅ ʙᴇᴄᴀᴜsᴇ ᴛʜᴇ ᴜsᴇʀ ɪᴅ ᴡᴀs ɴᴏᴛ ᴠᴀʟɪᴅ, ᴏʀ ᴘᴇʀʜᴀᴘs ɪᴛ ᴡᴀs ᴀ ᴄʜᴀɴɴᴇʟ ɪᴅ</b>")
 
-# Pyrogram Bot Handlers
-app = Client("renamer_bot", bot_token="YOUR_BOT_TOKEN")
+    elif data.startswith('noAlert'):
+        user_id =(data.split("_")[1])
+        user_id = int(user_id.replace(' ' , ''))
+        await query.message.edit(f"<b>Tʜᴇ ʙᴀɴ ᴏɴ <code>{user_id}</code> ᴡᴀs ᴇxᴇᴄᴜᴛᴇᴅ sɪʟᴇɴᴛʟʏ.</b>")
 
-@app.on_message(filters.command("start"))
-async def start(client, m: Message):
-    await m.reply(
-        "Hello! I'm your renamer bot. How can I assist you today?\n\n"
-        "Use /help for guidance on how to use the bot."
-    )
-
-@app.on_message(filters.command("help"))
-async def help(client, m: Message):
-    await m.reply(
-        "<b>Bot Commands:</b>\n"
-        "/start - Start the bot\n"
-        "/help - Show this help message\n"
-    )
-
-# Start the bot
-app.run()
+    elif data.startswith('sendUnbanAlert'):
+        user_id =(data.split("_")[1])
+        user_id = int(user_id.replace(' ' , ''))
+        if len(str(user_id)) == 10:
+            try:
+                unban_text = "<b>ʜᴜʀʀᴀʏ..ʏᴏᴜ ᴀʀᴇ ᴜɴʙᴀɴɴᴇᴅ ʙʏ [ʀᴀʜᴜʟ](https://telegram.me/callownerbot)</b>"
+                await client.send_message(user_id , unban_text)
+                await query.message.edit(f"<b>Uɴʙᴀɴɴᴇᴅ Aʟᴇʀᴛ sᴇɴᴛ ᴛᴏ <code>{user_id}</code>\nᴀʟᴇʀᴛ ᴛᴇxᴛ : {unban_text}</b>")
+            except Exception as e:
+                await query.message.edit(f"<b>sʀʏ ɪ ɢᴏᴛ ᴛʜɪs ᴇʀʀᴏʀ : {e}</b>")
+        else:
+            await query.message.edit(f"<b>Tʜᴇ ᴘʀᴏᴄᴇss ᴡᴀs ɴᴏᴛ ᴄᴏᴍᴘʟᴇᴛᴇᴅ ʙᴇᴄᴀᴜsᴇ ᴛʜᴇ ᴜsᴇʀ ɪᴅ ᴡᴀs ɴᴏᴛ ᴠᴀʟɪᴅ, ᴏʀ ᴘᴇʀʜᴀᴘs ɪᴛ ᴡᴀs ᴀ ᴄʜᴀɴɴᴇʟ ɪᴅ</b>")   
+    elif data.startswith('NoUnbanAlert'):
+        user_id =(data.split("_")[1])
+        user_id = int(user_id.replace(' ' , ''))
+        await query.message.edit(f"Tʜᴇ ᴜɴʙᴀɴ ᴏɴ <code>{user_id}</code> ᴡᴀs ᴇxᴇᴄᴜᴛᴇᴅ sɪʟᴇɴᴛʟʏ.")

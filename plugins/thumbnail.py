@@ -1,67 +1,58 @@
 from pyrogram import Client, filters
 from helper.database import jishubotz
-from PIL import Image, ImageEnhance, ImageDraw, ImageFont
+from PIL import Image, ImageEnhance
 import os
+import subprocess
 
-@Client.on_message(filters.private & filters.command(['view_thumb', 'viewthumb']))
-async def viewthumb(client, message):    
-    thumb = await jishubotz.get_thumbnail(message.from_user.id)
-    if thumb:
-        await client.send_photo(chat_id=message.chat.id, photo=thumb)
-    else:
-        await message.reply_text("**You don't have any thumbnail ❌**") 
-
-@Client.on_message(filters.private & filters.command(['del_thumb', 'delthumb']))
-async def removethumb(client, message):
-    await jishubotz.set_thumbnail(message.from_user.id, file_id=None)
-    await message.reply_text("**Thumbnail deleted successfully 🗑️**")
-
-@Client.on_message(filters.private & filters.photo)
-async def addthumbs(client, message):
-    mkn = await message.reply_text("Processing thumbnail...")
+@Client.on_message(filters.private & filters.video)
+async def addthumbs_from_video(client, message):
+    mkn = await message.reply_text("Processing high-quality thumbnail...")
 
     try:
-        photo_path = await message.download(file_name=f"{message.from_user.id}_original.jpg")
+        # Download video
+        video_path = await message.download(file_name=f"{message.from_user.id}_video.mp4")
+        thumb_path = f"{message.from_user.id}_thumb.jpg"
 
-        main_image = Image.open(photo_path).convert("RGBA")
+        # Extract frame from video using ffmpeg (1st second)
+        subprocess.run([
+            "ffmpeg", "-i", video_path,
+            "-ss", "00:00:01.000", "-vframes", "1", thumb_path
+        ], check=True)
+
+        # Open extracted image
+        main_image = Image.open(thumb_path).convert("RGBA")
         logo = Image.open("logo.png").convert("RGBA")
 
-        # Resize logo (10% of image width)
-        main_width, main_height = main_image.size
+        # Resize logo
+        main_width, _ = main_image.size
         logo_size = int(main_width * 0.1)
         logo = logo.resize((logo_size, logo_size))
 
-        # Reduce logo opacity
+        # Add transparency to logo
         alpha = logo.split()[3]
         alpha = ImageEnhance.Brightness(alpha).enhance(0.6)
         logo.putalpha(alpha)
 
-        # Paste logo
-        logo_pos = (15, 15)
-        main_image.paste(logo, logo_pos, logo)
-
-        # Draw text
-        draw = ImageDraw.Draw(main_image)
-        font_path = "arial.ttf"  # Make sure this font file exists
-        font = ImageFont.truetype(font_path, size=int(logo_size * 0.35))
-        text = "@YourChannelName"
-        text_pos = (logo_pos[0] + logo_size + 10, logo_pos[1] + int(logo_size * 0.25))
-        draw.text(text_pos, text, fill=(255, 255, 255, 180), font=font)
+        # Paste logo top-left
+        main_image.paste(logo, (15, 15), logo)
 
         output_path = f"thumb_{message.from_user.id}.png"
         main_image.save(output_path, "PNG")
 
+        # Send back for preview
         sent = await client.send_photo(
             chat_id=message.chat.id,
             photo=output_path,
-            caption="✅ Thumbnail with logo and channel name applied!"
+            caption="✅ Video thumbnail created with logo!"
         )
 
         await jishubotz.set_thumbnail(message.from_user.id, file_id=sent.photo.file_id)
         await mkn.edit("**Thumbnail saved successfully ✅**")
 
-        os.remove(photo_path)
+        # Cleanup
+        os.remove(video_path)
         os.remove(output_path)
+        os.remove(thumb_path)
 
     except Exception as e:
-        await mkn.edit(f"❌ Failed to process thumbnail.\nError: `{e}`")
+        await mkn.edit(f"❌ Failed to create thumbnail.\nError: `{e}`")

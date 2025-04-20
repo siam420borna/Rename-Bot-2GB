@@ -97,7 +97,7 @@ async def send_msg(user_id, message):
 
 from pyrogram import filters
 from pyrogram.types import Message
-from helper.database import add_premium, remove_premium, is_premium
+from helper.database import jishubotz
 
 ADMINS = [7862181538]  # replace with your own Telegram user ID
 

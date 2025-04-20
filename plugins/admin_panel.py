@@ -1,124 +1,114 @@
-import os, sys, time, asyncio, logging, datetime, shutil
+import os, sys, time, asyncio, logging, datetime
 from config import Config
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
 from pyrogram.errors import FloodWait, InputUserDeactivated, UserIsBlocked, PeerIdInvalid
 from helper.database import jishubotz
 
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-def get_readable_time(seconds: int) -> str:
-    periods = [
-        ('day', 86400),
-        ('hour', 3600),
-        ('minute', 60),
-        ('second', 1)
-    ]
-    parts = []
-    for name, count in periods:
-        value = seconds // count
-        if value:
-            seconds -= value * count
-            parts.append(f"{value} {name}{'s' if value > 1 else ''}")
-    return ', '.join(parts)
+@Client.on_message(filters.command("admin") & filters.user(Config.ADMIN))
+async def admin_panel(bot, message):
+    keyboard = InlineKeyboardMarkup([
+        [InlineKeyboardButton("📊 অবস্থা", callback_data="status"),
+         InlineKeyboardButton("♻️ রিস্টার্ট", callback_data="restart")],
+        [InlineKeyboardButton("📣 সম্প্রচার", callback_data="broadcast")],
+        [InlineKeyboardButton("❌ বন্ধ করুন", callback_data="close")]
+    ])
+    await message.reply("**🔐 অ্যাডমিন কন্ট্রোল প্যানেল**", reply_markup=keyboard)
+
+
+@Client.on_callback_query(filters.user(Config.ADMIN))
+async def admin_callbacks(bot, query: CallbackQuery):
+    data = query.data
+    if data == "status":
+        total_users = await jishubotz.total_users_count()
+        uptime = time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - bot.uptime))
+        start_t = time.time()
+        await query.message.edit("⏳ অনুরোধ প্রক্রিয়াকরণ হচ্ছে...")
+        end_t = time.time()
+        ping_time = (end_t - start_t) * 1000
+        await query.message.edit_text(
+            f"**✅ বট স্ট্যাটাস**\n\n"
+            f"⌚ আপটাইম: `{uptime}`\n"
+            f"📡 পিং: `{ping_time:.3f} ms`\n"
+            f"👥 মোট ব্যবহারকারী: `{total_users}`"
+        )
+
+    elif data == "restart":
+        await query.message.edit("♻️ রিস্টার্ট হচ্ছে...")
+        await asyncio.sleep(2)
+        os.execl(sys.executable, sys.executable, *sys.argv)
+
+    elif data == "broadcast":
+        await query.message.edit("**ℹ️ সম্প্রচার করতে একটি মেসেজে রিপ্লাই করে `/broadcast` লিখুন।**")
+
+    elif data == "close":
+        try:
+            await query.message.delete()
+        except:
+            pass
+
 
 @Client.on_message(filters.command("status") & filters.user(Config.ADMIN))
 async def get_stats(bot, message):
     total_users = await jishubotz.total_users_count()
-    uptime = get_readable_time(int(time.time() - bot.uptime))
-    start_time = time.time()
-
-    # Active users in last 7 days
-    active_users = await jishubotz.count_active_users(days=7)
-
-    msg = await message.reply("⚡ Processing bot stats...")
-    end_time = time.time()
-    ping = (end_time - start_time) * 1000
-
-    # Storage info (if running on disk)
-    total, used, free = shutil.disk_usage(".")
-    used_gb = used // (2**30)
-    total_gb = total // (2**30)
-
-    await msg.edit(
-        f"**🤖 Bot Status:**\n\n"
-        f"**⏱ Uptime:** `{uptime}`\n"
-        f"**📶 Ping:** `{ping:.2f} ms`\n"
-        f"**👥 Total Users:** `{total_users}`\n"
-        f"**✅ Active (7d):** `{active_users}`\n"
-        f"**💾 Disk Usage:** `{used_gb} GB / {total_gb} GB`\n",
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("🔁 Restart", callback_data="admin_restart")],
-            [InlineKeyboardButton("🔙 Close", callback_data="admin_close")]
-        ])
-    )
+    uptime = time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - bot.uptime))
+    start_t = time.time()
+    st = await message.reply('**⏳ বিস্তারিত নেওয়া হচ্ছে...**')
+    end_t = time.time()
+    time_taken_s = (end_t - start_t) * 1000
+    await st.edit(f"**--বট স্ট্যাটাস--** \n\n**⌚ আপটাইম:** `{uptime}` \n**📡 পিং:** `{time_taken_s:.3f} ms`\n**👥 মোট ব্যবহারকারী:** `{total_users}`")
 
 @Client.on_message(filters.command("restart") & filters.user(Config.ADMIN))
 async def restart_bot(bot, message):
-    msg = await message.reply("♻️ Restarting bot...")
-    await asyncio.sleep(3)
-    await msg.edit("✅ Restart complete.")
+    msg = await message.reply("♻️ রিস্টার্ট হচ্ছে...")
+    await asyncio.sleep(2)
     os.execl(sys.executable, sys.executable, *sys.argv)
 
 @Client.on_message(filters.command("ping") & filters.user(Config.ADMIN))
 async def ping(_, message):
-    start = time.time()
-    m = await message.reply("🏓 Pinging...")
-    end = time.time()
-    await m.edit(f"**Pong:** `{(end-start)*1000:.2f} ms`")
-
-@Client.on_message(filters.command("userinfo") & filters.user(Config.ADMIN))
-async def userinfo(bot, message: Message):
-    if len(message.command) < 2:
-        return await message.reply("**Usage:** `/userinfo user_id`")
-    user_id = int(message.command[1])
-    try:
-        user = await bot.get_users(user_id)
-        mention = user.mention
-        is_registered = await jishubotz.is_user_exist(user_id)
-        await message.reply(
-            f"**👤 User Info:**\n\n"
-            f"**ID:** `{user.id}`\n"
-            f"**Name:** {user.first_name}\n"
-            f"**Username:** @{user.username if user.username else 'N/A'}\n"
-            f"**Mention:** {mention}\n"
-            f"**Registered:** {'✅ Yes' if is_registered else '❌ No'}"
-        )
-    except Exception as e:
-        await message.reply(f"⚠️ Failed to get user info:\n`{e}`")
+    start_t = time.time()
+    rm = await message.reply_text("পিং হচ্ছে...")
+    end_t = time.time()
+    time_taken_s = (end_t - start_t) * 1000
+    await rm.edit(f"🔥 পিং: `{time_taken_s:.3f} ms`")
 
 @Client.on_message(filters.command("broadcast") & filters.user(Config.ADMIN) & filters.reply)
 async def broadcast_handler(bot: Client, m: Message):
     try:
-        await bot.send_message(Config.LOG_CHANNEL, f"📢 Broadcast initiated by {m.from_user.mention} (`{m.from_user.id}`)")
+        await bot.send_message(Config.LOG_CHANNEL, f"{m.from_user.mention} সম্প্রচার শুরু করেছেন।")
     except Exception as e:
-        logger.warning("Log channel issue: %s", e)
+        print("LOG_CHANNEL error:", e)
 
-    users = await jishubotz.get_all_users()
-    msg = m.reply_to_message
-    done, success, failed = 0, 0, 0
-    sts = await m.reply("🚀 Broadcast started...")
-    total = await jishubotz.total_users_count()
+    all_users = await jishubotz.get_all_users()
+    broadcast_msg = m.reply_to_message
+    sts_msg = await m.reply_text("📣 সম্প্রচার শুরু হয়েছে...")
+
+    done = 0
+    failed = 0
+    success = 0
     start_time = time.time()
+    total_users = await jishubotz.total_users_count()
 
-    async for u in users:
-        status = await send_msg(u['_id'], msg)
-        if status == 200:
+    async for user in all_users:
+        sts = await send_msg(user['_id'], broadcast_msg)
+        if sts == 200:
             success += 1
         else:
             failed += 1
-            if status == 400:
-                await jishubotz.delete_user(u['_id'])
+        if sts == 400:
+            await jishubotz.delete_user(user['_id'])
         done += 1
         if done % 20 == 0:
             try:
-                await sts.edit(f"**Broadcast In Progress:**\n✅ Success: {success}\n❌ Failed: {failed}\n📤 Done: {done}/{total}")
+                await sts_msg.edit(f"**📤 সম্প্রচার চলছে:**\n\nমোট ইউজার: {total_users}\nসম্পন্ন হয়েছে: {done}/{total_users}\nসফল: {success}\nব্যর্থ: {failed}")
             except:
                 pass
 
-    duration = datetime.timedelta(seconds=int(time.time() - start_time))
-    await sts.edit(f"✅ **Broadcast Complete:**\n\n⏱ Duration: `{duration}`\n📊 Success: `{success}`\n⚠ Failed: `{failed}`\n👥 Total: `{total}`")
+    completed_in = datetime.timedelta(seconds=int(time.time() - start_time))
+    await sts_msg.edit(f"✅ **সম্প্রচার শেষ!**\n\nসময় লেগেছে: `{completed_in}`\nমোট ইউজার: {total_users}\nসফল: {success}\nব্যর্থ: {failed}")
 
 async def send_msg(user_id, message):
     try:
@@ -130,18 +120,5 @@ async def send_msg(user_id, message):
     except (InputUserDeactivated, UserIsBlocked, PeerIdInvalid):
         return 400
     except Exception as e:
-        logger.error(f"[{user_id}] Broadcast error: {e}")
+        logger.error(f"{user_id}: {e}")
         return 500
-
-@Client.on_callback_query(filters.regex("admin_"))
-async def admin_callback(bot, query):
-    data = query.data
-    if data == "admin_restart":
-        await query.message.edit("♻️ Restarting bot...")
-        await asyncio.sleep(3)
-        os.execl(sys.executable, sys.executable, *sys.argv)
-    elif data == "admin_close":
-        try:
-            await query.message.delete()
-        except:
-            pass

@@ -25,7 +25,7 @@ async def addthumbs(client, message):
         # Add watermark text
         draw = ImageDraw.Draw(main_image)
         font = ImageFont.truetype("arial.ttf", 20)  # Ensure this font exists
-        text = "YourChannelName"
+        text = "Renamer Bot 5G"
         draw.text((15, main_image.height - 30), text, font=font, fill=(255, 255, 255, 180))
 
         # Save the final image

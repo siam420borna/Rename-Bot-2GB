@@ -2,8 +2,10 @@ import motor.motor_asyncio
 from config import Config
 from .utils import send_log
 
-# Database handler for bot settings
 class Database:
+    """
+    Database handler for user settings and thumbnails.
+    """
 
     def __init__(self, uri, database_name):
         self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
@@ -11,7 +13,7 @@ class Database:
         self.col = self.jishubotz.user
         self.bannedList = self.jishubotz.bannedList
 
-    # New user template
+    # Template for a new user document
     def new_user(self, id):
         return {
             '_id': int(id),
@@ -24,16 +26,14 @@ class Database:
         }
 
     # User management
-    async def add_user(self, b, m):
-        u = m.from_user
-        if not await self.is_user_exist(u.id):
-            user = self.new_user(u.id)
-            await self.col.insert_one(user)
-            await send_log(b, u)
+    async def add_user(self, bot, message):
+        user = message.from_user
+        if not await self.is_user_exist(user.id):
+            await self.col.insert_one(self.new_user(user.id))
+            await send_log(bot, user)
 
     async def is_user_exist(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return bool(user)
+        return await self.col.find_one({'_id': int(id)}) is not None
 
     async def total_users_count(self):
         return await self.col.count_documents({})
@@ -44,45 +44,53 @@ class Database:
     async def delete_user(self, user_id):
         await self.col.delete_many({'_id': int(user_id)})
 
-    # Thumbnail
+    # Thumbnail handling
     async def set_thumbnail(self, id, file_id):
         await self.col.update_one({'_id': int(id)}, {'$set': {'file_id': file_id}})
 
     async def get_thumbnail(self, id):
         user = await self.col.find_one({'_id': int(id)})
-        return user.get('file_id', None)
+        return user.get('file_id') if user else None
 
-    # Caption
+    # Custom thumbnail size
+    async def set_thumb_size(self, id, size):
+        await self.col.update_one({'_id': int(id)}, {'$set': {'thumb_size': size}})
+
+    async def get_thumb_size(self, id):
+        user = await self.col.find_one({'_id': int(id)})
+        return user.get('thumb_size') if user else None
+
+    # Caption settings
     async def set_caption(self, id, caption):
         await self.col.update_one({'_id': int(id)}, {'$set': {'caption': caption}})
 
     async def get_caption(self, id):
         user = await self.col.find_one({'_id': int(id)})
-        return user.get('caption', None)
+        return user.get('caption') if user else None
 
-    # Prefix
+    # Prefix settings
     async def set_prefix(self, id, prefix):
         await self.col.update_one({'_id': int(id)}, {'$set': {'prefix': prefix}})
 
     async def get_prefix(self, id):
         user = await self.col.find_one({'_id': int(id)})
-        return user.get('prefix', None)
+        return user.get('prefix') if user else None
 
-    # Suffix
+    # Suffix settings
     async def set_suffix(self, id, suffix):
         await self.col.update_one({'_id': int(id)}, {'$set': {'suffix': suffix}})
 
     async def get_suffix(self, id):
         user = await self.col.find_one({'_id': int(id)})
-        return user.get('suffix', None)
+        return user.get('suffix') if user else None
 
-    # Metadata
+    # Metadata settings
     async def set_metadata(self, id, bool_meta):
         await self.col.update_one({'_id': int(id)}, {'$set': {'metadata': bool_meta}})
 
     async def get_metadata(self, id):
         user = await self.col.find_one({'_id': int(id)})
-        return user.get('metadata', None)
+        return user.get('metadata') if user else None
 
     # Metadata code
     async def set_metadata_code(self, id, metadata_code):
@@ -90,38 +98,26 @@ class Database:
 
     async def get_metadata_code(self, id):
         user = await self.col.find_one({'_id': int(id)})
-        return user.get('metadata_code', None)
-
-    # Thumbnail size (custom resize)
-    async def set_thumb_size(self, id, size):
-        await self.col.update_one({'_id': int(id)}, {'$set': {'thumb_size': size}})
-
-    async def get_thumb_size(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('thumb_size', None)
+        return user.get('metadata_code') if user else None
 
     # Ban control
     async def ban_user(self, user_id):
-        user = await self.bannedList.find_one({'banId': int(user_id)})
-        if user:
+        exists = await self.bannedList.find_one({'banId': int(user_id)})
+        if exists:
             return False
         await self.bannedList.insert_one({'banId': int(user_id)})
         return True
 
     async def is_banned(self, user_id):
-        user = await self.bannedList.find_one({'banId': int(user_id)})
-        return True if user else False
+        return await self.bannedList.find_one({'banId': int(user_id)}) is not None
 
     async def is_unbanned(self, user_id):
-        try:
-            if await self.bannedList.find_one({'banId': int(user_id)}):
-                await self.bannedList.delete_one({'banId': int(user_id)})
-                return True
-            return False
-        except Exception as e:
-            print(f"Failed to unban: {e}")
-            return False
+        result = await self.bannedList.find_one({'banId': int(user_id)})
+        if result:
+            await self.bannedList.delete_one({'banId': int(user_id)})
+            return True
+        return False
 
-# Create a Database instance
+# Instantiate Database
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)
 

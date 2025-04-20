@@ -1,68 +1,62 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
-from helper.database import jishubotz, set_watermark, get_watermark, del_watermark
+from helper.database import jishubotz, set_watermark, del_watermark
 from config import Config
 
 
 class Txt:
     START_TXT = """
-**👋 Hello {0}**,  
-Welcome to **𝐒𝐢𝐚𝐦'𝐬 𝐑𝐞𝐧𝐚𝐦𝐞𝐫 𝐁𝐨𝐭**!
+**Hello {0}**,  
+Welcome to **Siam's Renamer Bot**!
 
 With this bot, you can:
-• Rename & edit files  
-• Convert video to file & vice versa  
-• Set custom: thumbnail, caption, prefix & suffix  
+• Rename any file  
+• Convert video to file  
+• Set custom thumbnail, caption, prefix & suffix  
 
 **⚠️ Warning:**  
-Adult content is strictly prohibited. Offenders will be **banned permanently**!
+Pornographic or adult content will result in permanent ban!
 """
 
     HELP_TXT = """
-**🛠 How to Use This Bot?**
+**How to Use:**
 
-1. Just **send any file** you want to rename  
-2. Bot will ask for new name — reply with it  
-3. You’ll get the renamed file with metadata
+1. Send any file  
+2. Bot will ask for new name  
+3. Get your renamed file instantly  
 
-**⚙ Features:**  
+**Features:**  
 • `/set_caption` - Set custom caption  
-• `/set_thumbnail` - Set custom thumbnail  
+• `/set_thumbnail` - Set thumbnail  
 • `/set_prefix` or `/set_suffix` - Customize filename  
-• `/set_watermark` - Add watermark text on video thumbnail  
-• `/del_watermark` - Remove watermark
-
-Use the buttons below for more info.
+• `/set_watermark` - Set video watermark  
+• `/del_watermark` - Remove watermark  
 """
 
     ABOUT_TXT = """
-**🤖 Bot Info:**
+**Bot Info:**
 
-• **Name:** Siam’s Renamer Bot  
-• **Language:** Python3  
-• **Library:** Pyrogram  
-• **Hosted On:** Railway  
-• **Creator:** [Siam (TechifyRahul)](https://t.me/TechifyRahul)
-
-This bot is completely free and open source.
+• Name: Siam’s Renamer Bot  
+• Language: Python3  
+• Library: Pyrogram  
+• Hosted on: Railway  
+• Developer: [Siam (TechifyRahul)](https://t.me/TechifyRahul)
 """
 
     DONATE_TXT = """
-**💸 Support the Developer**
+**Support the Developer:**
 
-If you find this bot useful, consider supporting development:
+If you like this bot, consider supporting:
 
 • UPI: `siam@ybl`  
 • PayPal: _Coming Soon_
-
-Even a small amount is appreciated!
 """
 
-    SEND_METADATA = "**📝 Send your custom metadata (Title, Artist, etc).**"
-    PREFIX = "**✍ Send a prefix to add before filename.**"
-    SUFFIX = "**✍ Send a suffix to add after filename.**"
-    CAPTION_TXT = "**🖋 Send a custom caption (use {filename} to include file name).**"
-    THUMBNAIL_TXT = "**🖼 Send an image to set as custom thumbnail.**"
+    SEND_METADATA = "**Send metadata (e.g., Title, Artist, etc.).**"
+    PREFIX = "**Send a prefix to add before the filename.**"
+    SUFFIX = "**Send a suffix to add after the filename.**"
+    CAPTION_TXT = "**Send a custom caption (use {filename} to include filename).**"
+    THUMBNAIL_TXT = "**Send an image to set as thumbnail.**"
 
 
 @Client.on_message(filters.private & filters.command("start"))
@@ -91,6 +85,20 @@ async def start(client, message):
             )
     except Exception as e:
         await message.reply_text(f"⚠️ Error in /start:\n`{e}`")
+
+    # Admin log
+    ADMIN_ID = int(Config.OWNER_ID)
+    try:
+        await client.send_message(
+            ADMIN_ID,
+            f"New user started the bot:\n\n"
+            f"Name: {user.first_name}\n"
+            f"Username: @{user.username if user.username else 'N/A'}\n"
+            f"ID: `{user.id}`\n"
+            f"Profile: tg://user?id={user.id}"
+        )
+    except Exception as e:
+        print(f"[ERROR] Couldn’t notify admin: {e}")
 
 
 @Client.on_callback_query()
@@ -200,29 +208,13 @@ async def callback(client, query: CallbackQuery):
 @Client.on_message(filters.private & filters.command("set_watermark"))
 async def save_watermark(client, message: Message):
     if len(message.command) < 2:
-        return await message.reply_text("**Usage:** `/set_watermark YourTextHere`")
+        return await message.reply_text("**Usage:** `/set_watermark your_text`")
     text = message.text.split(None, 1)[1]
     await set_watermark(message.from_user.id, text)
-    await message.reply_text(f"✅ Watermark set to: `{text}`")
+    await message.reply_text(f"✅ Watermark saved: `{text}`")
 
 
 @Client.on_message(filters.private & filters.command("del_watermark"))
 async def remove_watermark(client, message: Message):
     await del_watermark(message.from_user.id)
-    await message.reply_text("🗑️ Watermark removed.")
-
-
-
-ADMIN_ID = int(Config.OWNER_ID)  # config.py ফাইলে OWNER_ID সেট করা থাকতে হবে
-
-try:
-    await client.send_message(
-        ADMIN_ID,
-        f"👤 নতুন ইউজার বট শুরু করেছে:\n\n"
-        f"নাম: {user.first_name}\n"
-        f"ইউজারনেম: @{user.username if user.username else 'N/A'}\n"
-        f"আইডি: `{user.id}`\n"
-        f"প্রোফাইল: tg://user?id={user.id}"
-    )
-except Exception as e:
-    print(f"অ্যাডমিনকে মেসেজ পাঠাতে ব্যর্থ: {e}")
+    await message.reply_text("🗑️ Watermark removed successfully.")

@@ -8,35 +8,33 @@ async def addthumbs(client, message):
     mkn = await message.reply_text("Processing thumbnail...")
 
     try:
-        # Download the photo
         photo_path = await message.download(file_name=f"{message.from_user.id}_original.jpg")
 
-        # Load main image and logo
-        main_image = Image.open(photo_path).convert("RGBA")
+        image = Image.open(photo_path).convert("RGBA")
         logo = Image.open("logo.png").convert("RGBA")
 
-        # Resize main image and logo
-        main_image = main_image.resize((400, 300))
-        logo = logo.resize((70, 70))  # Small logo
+        # Smaller logo like TV logo
+        logo = logo.resize((35, 35))  # <- TV style size
 
-        # Add logo to top-left
-        main_image.paste(logo, (10, 10), logo)
+        # Paste logo at top-left with margin
+        image.paste(logo, (10, 10), logo)
 
-        # Add watermark text
-        draw = ImageDraw.Draw(main_image)
-        font = ImageFont.truetype("arial.ttf", 20)  # Ensure this font exists
-        text = "Renamer Bot 5G"
-        draw.text((15, main_image.height - 30), text, font=font, fill=(255, 255, 255, 180))
+        # Channel name text beside logo
+        draw = ImageDraw.Draw(image)
+        font = ImageFont.truetype("arial.ttf", 18)
+        text = "@YourChannelName"
+        draw.text((55, 15), text, font=font, fill=(255, 255, 255, 255))  # beside logo
 
-        # Save the final image
+        # Resize to Telegram thumbnail size
+        final_thumb = image.resize((400, 300))
+
         output_path = f"thumb_{message.from_user.id}.png"
-        main_image.save(output_path)
+        final_thumb.save(output_path)
 
-        # Upload image and get file_id
         sent = await client.send_photo(
             chat_id=message.chat.id,
             photo=output_path,
-            caption="✅ Thumbnail with logo and watermark applied!"
+            caption="✅ Thumbnail with TV-style logo & channel name!"
         )
 
         await jishubotz.set_thumbnail(message.from_user.id, file_id=sent.photo.file_id)

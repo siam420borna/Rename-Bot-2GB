@@ -134,3 +134,19 @@ async def callback(client, query: CallbackQuery):
             await query.message.delete()
         except:
             pass
+
+
+
+@Client.on_message(filters.private & filters.command("set_watermark"))
+async def save_watermark(client, message: Message):
+    if len(message.command) < 2:
+        return await message.reply_text("**Usage:** `/set_watermark YourTextHere`")
+    text = message.text.split(None, 1)[1]
+    await set_watermark(message.from_user.id, text)
+    await message.reply_text(f"✅ Watermark set to: `{text}`")
+
+
+@Client.on_message(filters.private & filters.command("del_watermark"))
+async def remove_watermark(client, message: Message):
+    await del_watermark(message.from_user.id)
+    await message.reply_text("🗑️ Watermark removed.")

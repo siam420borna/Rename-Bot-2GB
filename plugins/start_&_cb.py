@@ -238,3 +238,28 @@ async def set_watermark_handler(c: Client, m: Message):
     watermark_path = f"{WATERMARK_DIR}/{user_id}.png"
     await doc.download(file_name=watermark_path)
     await m.reply_text("✅ Watermark logo has been saved successfully.")
+
+
+
+
+
+
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from helper.database import set_watermark_position, get_watermark_position
+
+@Client.on_message(filters.command("set_watermark_pos"))
+async def set_wm_position(c: Client, m: Message):
+    if len(m.command) < 2:
+        return await m.reply_text(
+            "**Usage:**\n/set_watermark_pos bottom-right\n\n**Positions:** top-left, top-right, bottom-left, bottom-right, center"
+        )
+    
+    position = m.command[1].lower()
+    valid_positions = ["top-left", "top-right", "bottom-left", "bottom-right", "center"]
+    
+    if position not in valid_positions:
+        return await m.reply_text("❗ Invalid position! Use one of:\n" + ", ".join(valid_positions))
+    
+    await set_watermark_position(m.from_user.id, position)
+    await m.reply_text(f"✅ Watermark position set to `{position}`.")

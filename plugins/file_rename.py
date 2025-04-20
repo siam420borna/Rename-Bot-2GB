@@ -220,3 +220,57 @@ async def doc(bot, update):
         await deletion_msg.delete()
     except Exception as e:
         print(f"Error deleting messages after 30 minutes: {e}")
+
+
+
+
+
+
+
+
+#chatgpt
+
+
+from helper.database import get_batch_mode
+from pyrogram.types import Message
+from pyrogram import Client, filters
+
+# A dict to temporarily store queued files per user
+batch_queues = {}
+
+@Client.on_message(filters.document | filters.video | filters.audio)
+async def handle_file_upload(client: Client, message: Message):
+    user_id = message.from_user.id
+    batch_mode = await get_batch_mode(user_id)
+
+    if batch_mode:
+        if user_id not in batch_queues:
+            batch_queues[user_id] = []
+        
+        batch_queues[user_id].append(message)
+
+        await message.reply_text(
+            f"📥 File received and queued.\nYou have **{len(batch_queues[user_id])}** files in queue.\n\nSend `/batchdone` when you're ready to rename/upload."
+        )
+    else:
+        # Process file immediately as usual (your existing logic here)
+        await process_single_file(client, message)
+
+# New command to trigger processing of all queued files
+@Client.on_message(filters.command("batchdone"))
+async def process_batch_files(client: Client, message: Message):
+    user_id = message.from_user.id
+    files = batch_queues.get(user_id)
+
+    if not files:
+        return await message.reply_text("⚠️ You don’t have any files in batch queue.")
+
+    await message.reply_text(f"✅ Starting to process {len(files)} files...")
+
+    for msg in files:
+        try:
+            await process_single_file(client, msg)
+        except Exception as e:
+            await message.reply_text(f"❌ Failed to process one file: `{e}`")
+
+    batch_queues[user_id] = []  # Clear the queue after processing

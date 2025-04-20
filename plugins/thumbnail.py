@@ -24,7 +24,7 @@ async def addthumbs(client, message):
     try:
         file_path = await message.download(file_name=f"{message.from_user.id}_temp")
 
-        # Determine if image or video
+        # If it's a video, extract a high-res thumbnail
         if message.photo:
             thumb_path = file_path
         else:
@@ -37,27 +37,28 @@ async def addthumbs(client, message):
             ]
             subprocess.run(cmd, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
-        # Open thumbnail and logo
+        # Open image and logo
         main_image = Image.open(thumb_path).convert("RGBA")
         logo = Image.open("logo.png").convert("RGBA")
 
-        # Resize logo to 10% of image width
-        main_width, _ = main_image.size
+        # Resize logo (10% of width)
+        main_width, main_height = main_image.size
         logo_size = int(main_width * 0.1)
         logo = logo.resize((logo_size, logo_size))
 
-        # Transparency
+        # Transparent logo (60% opacity)
         alpha = logo.split()[3]
         alpha = ImageEnhance.Brightness(alpha).enhance(0.6)
         logo.putalpha(alpha)
 
-        # Paste logo at top-left
-        main_image.paste(logo, (15, 15), logo)
+        # Top-right position
+        position = (main_width - logo_size - 15, 15)
+        main_image.paste(logo, position, logo)
 
+        # Save final image
         output_path = f"thumb_{message.from_user.id}.png"
         main_image.save(output_path, "PNG")
 
-        # Send and save
         sent = await client.send_photo(
             chat_id=message.chat.id,
             photo=output_path,

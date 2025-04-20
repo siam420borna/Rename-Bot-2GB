@@ -5,8 +5,6 @@ from PIL import Image
 from hachoir.metadata import extractMetadata
 from hachoir.parser import createParser
 
-from helper.database import get_watermark_position
-
 
 async def fix_thumb(thumb):
     width = 0

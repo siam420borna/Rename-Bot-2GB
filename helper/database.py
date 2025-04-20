@@ -119,3 +119,10 @@ class Database:
 
 # Instantiate the DB
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)
+
+
+
+async def total_users():
+    from . import db
+    users = await db.total_users()
+    return users

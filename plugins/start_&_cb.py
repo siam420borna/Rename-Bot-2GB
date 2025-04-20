@@ -215,4 +215,26 @@ async def set_thumb_size(client, message):
 
 
 
+#gpt
 
+
+from pyrogram import Client, filters
+from pyrogram.types import Message
+import os
+
+WATERMARK_DIR = "watermarks"
+os.makedirs(WATERMARK_DIR, exist_ok=True)
+
+@Client.on_message(filters.command("set_watermark") & filters.reply)
+async def set_watermark_handler(c: Client, m: Message):
+    if not m.reply_to_message or not m.reply_to_message.document:
+        return await m.reply_text("Please reply to a PNG/JPG file to set it as your watermark.")
+
+    doc = m.reply_to_message.document
+    if not doc.mime_type.startswith("image/"):
+        return await m.reply_text("Only image files are supported!")
+
+    user_id = m.from_user.id
+    watermark_path = f"{WATERMARK_DIR}/{user_id}.png"
+    await doc.download(file_name=watermark_path)
+    await m.reply_text("✅ Watermark logo has been saved successfully.")

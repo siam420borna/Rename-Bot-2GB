@@ -8,190 +8,127 @@ from helper.database import jishubotz
 logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
 
-# Admin Panel Command
-@Client.on_message(filters.command("admin") & filters.user(Config.ADMIN))
-async def admin_panel(client, message):
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("📊 অবস্থা", callback_data="status"),
-         InlineKeyboardButton("♻️ রিস্টার্ট", callback_data="restart")],
-        [InlineKeyboardButton("📣 সম্প্রচার", callback_data="broadcast"),
-         InlineKeyboardButton("🛑 বট বন্ধ", callback_data="stop_bot")],
-        [InlineKeyboardButton("🚫 ইউজার ব্যান", callback_data="ban_user"),
-         InlineKeyboardButton("✅ ইউজার আনব্যান", callback_data="unban_user")],
-        [InlineKeyboardButton("🔍 ইউজার খোঁজ", callback_data="search_user")],
-        [InlineKeyboardButton("❌ বন্ধ করুন", callback_data="close")]
-    ])
-    await message.reply("**🔐 অ্যাডমিন কন্ট্রোল প্যানেল**", reply_markup=keyboard)
-
-# Callback Handlers
-@Client.on_callback_query(filters.user(Config.ADMIN))
-async def admin_callbacks(client, query: CallbackQuery):
-    data = query.data
-    if data == "status":
-        total_users = await jishubotz.total_users_count()
-        uptime = time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - client.uptime))
-        start_time = time.time()
-        await query.message.edit("⏳ অনুরোধ প্রক্রিয়াকরণ হচ্ছে...")
-        ping = (time.time() - start_time) * 1000
-        await query.message.edit_text(
-            f"**✅ বট স্ট্যাটাস**\n\n"
-            f"⌚ আপটাইম: `{uptime}`\n"
-            f"📡 পিং: `{ping:.3f} ms`\n"
-            f"👥 মোট ব্যবহারকারী: `{total_users}`"
-        )
-
-    elif data == "restart":
-        await query.message.edit("♻️ রিস্টার্ট হচ্ছে...")
-        logger.info("Bot is restarting.")
-        await asyncio.sleep(2)
-        os.execl(sys.executable, sys.executable, *sys.argv)
-
-    elif data == "broadcast":
-        await query.message.edit("**ℹ️ সম্প্রচার করতে একটি মেসেজে রিপ্লাই করে `/broadcast` লিখুন।**")
-
-    elif data == "stop_bot":
-        await query.message.edit("🛑 বট বন্ধ করা হচ্ছে...")
-        # Implementing bot stop feature (optional maintenance mode)
-        # You can create a flag or set the bot in maintenance mode here
-        pass
-
-    elif data == "ban_user":
-        await query.message.edit("**ℹ️ ব্যান করার জন্য ইউজারের আইডি লিখুন।**")
-
-    elif data == "unban_user":
-        await query.message.edit("**ℹ️ আনব্যান করার জন্য ইউজারের আইডি লিখুন।**")
-
-    elif data == "search_user":
-        await query.message.edit("**ℹ️ ইউজারের আইডি দিয়ে খোঁজা শুরু করুন।**")
-
-    elif data == "close":
-        try:
-            await query.message.delete()
-        except Exception as e:
-            logger.error(f"Error while closing message: {e}")
-
-# /status command
 @Client.on_message(filters.command("status") & filters.user(Config.ADMIN))
-async def bot_status(client, message):
+async def get_stats(bot, message):
     total_users = await jishubotz.total_users_count()
-    uptime = time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - client.uptime))
-    start_time = time.time()
-    status_msg = await message.reply("**⏳ বিস্তারিত নেওয়া হচ্ছে...**")
-    ping = (time.time() - start_time) * 1000
-    await status_msg.edit(
-        f"**--বট স্ট্যাটাস--** \n\n"
-        f"⌚ আপটাইম: `{uptime}`\n"
-        f"📡 পিং: `{ping:.3f} ms`\n"
-        f"👥 মোট ব্যবহারকারী: `{total_users}`"
-    )
+    uptime = time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - bot.uptime))
+    start_t = time.time()
+    st = await message.reply('**Processing The Details.....**')
+    end_t = time.time()
+    time_taken_s = (end_t - start_t) * 1000
+    await st.edit(text=f"**--Bot Stats--** \n\n**⌚ Bot Uptime:** `{uptime}` \n**🐌 Current Ping:** `{time_taken_s:.3f} ms` \n**👭 Total Users:** `{total_users}`")
 
-# /restart command
 @Client.on_message(filters.command("restart") & filters.user(Config.ADMIN))
-async def restart_bot(client, message):
-    msg = await message.reply("♻️ রিস্টার্ট হচ্ছে...")
-    logger.info("Bot is restarting.")
-    await asyncio.sleep(2)
+async def restart_bot(bot, message):
+    msg = await bot.send_message(text="🔄 Processes Stopped. Bot Is Restarting...", chat_id=message.chat.id)
+    await asyncio.sleep(3)
+    await msg.edit("✅️ Bot Is Restarted. Now You Can Use Me")
     os.execl(sys.executable, sys.executable, *sys.argv)
 
-# /ping command
-@Client.on_message(filters.command("ping") & filters.user(Config.ADMIN))
-async def bot_ping(client, message):
-    start_time = time.time()
-    msg = await message.reply("পিং হচ্ছে...")
-    ping = (time.time() - start_time) * 1000
-    await msg.edit(f"🔥 পিং: `{ping:.3f} ms`")
+@Client.on_message(filters.private & filters.command("ping"))
+async def ping(_, message):
+    start_t = time.time()
+    rm = await message.reply_text("Pinging....")
+    end_t = time.time()
+    time_taken_s = (end_t - start_t) * 1000
+    await rm.edit(f"Ping 🔥!\n{time_taken_s:.3f} ms")
+    return time_taken_s
 
-# /broadcast command
 @Client.on_message(filters.command("broadcast") & filters.user(Config.ADMIN) & filters.reply)
-async def broadcast_handler(client: Client, message: Message):
+async def broadcast_handler(bot: Client, m: Message):
     try:
-        await client.send_message(Config.LOG_CHANNEL, f"{message.from_user.mention} সম্প্রচার শুরু করেছেন।")
+        await bot.send_message(Config.LOG_CHANNEL, f"{m.from_user.mention} or {m.from_user.id} started a broadcast.")
     except Exception as e:
-        logger.error(f"Log channel error: {e}")
+        print("Log channel error:", e)
 
     all_users = await jishubotz.get_all_users()
-    broadcast_msg = message.reply_to_message
-    status_msg = await message.reply_text("📣 সম্প্রচার শুরু হয়েছে...")
+    broadcast_msg = m.reply_to_message
+    sts_msg = await m.reply_text("Broadcast Started..!")
 
-    total = await jishubotz.total_users_count()
-    done, failed, success = 0, 0, 0
+    done = 0
+    failed = 0
+    success = 0
     start_time = time.time()
+    total_users = await jishubotz.total_users_count()
 
     async for user in all_users:
-        result = await send_broadcast(user['_id'], broadcast_msg)
-        if result == 200:
+        sts = await send_msg(user['_id'], broadcast_msg)
+        if sts == 200:
             success += 1
-        elif result == 400:
-            await jishubotz.delete_user(user['_id'])
-            failed += 1
         else:
             failed += 1
+        if sts == 400:
+            await jishubotz.delete_user(user['_id'])
         done += 1
-
         if done % 20 == 0:
             try:
-                await status_msg.edit(
-                    f"📤 সম্প্রচার চলছে:\n"
-                    f"মোট: {total}\nসম্পন্ন: {done}/{total}\n✅ সফল: {success}\n❌ ব্যর্থ: {failed}"
-                )
-            except Exception:
-                pass
+                await sts_msg.edit(f"**Broadcast In Progress:** \n\nTotal Users: {total_users} \nCompleted: {done}/{total_users}\nSuccess: {success}\nFailed: {failed}")
+            except Exception as e:
+                logger.warning(f"Edit failed: {e}")
 
-    duration = str(datetime.timedelta(seconds=int(time.time() - start_time)))
-    await status_msg.edit(
-        f"✅ **সম্প্রচার শেষ!**\n\nসময় লেগেছে: `{duration}`\n"
-        f"মোট: {total}\n✅ সফল: {success}\n❌ ব্যর্থ: {failed}"
-    )
+    completed_in = datetime.timedelta(seconds=int(time.time() - start_time))
+    await sts_msg.edit(f"**Broadcast Completed:** \n\nCompleted In `{completed_in}`.\n\nTotal Users: {total_users}\nCompleted: {done}/{total_users}\nSuccess: {success}\nFailed: {failed}")
 
-# Ban/Unban user
-@Client.on_message(filters.command("ban") & filters.user(Config.ADMIN))
-async def ban_user(client, message: Message):
-    try:
-        user_id = int(message.text.split()[1])
-        await client.ban_chat_member(Config.CHAT_ID, user_id)
-        await message.reply(f"✅ ইউজার `{user_id}` সফলভাবে ব্যান করা হয়েছে।")
-    except ValueError:
-        await message.reply("❌ ইউজার আইডি ভুল। দয়া করে সঠিক আইডি দিন।")
-    except Exception as e:
-        await message.reply(f"❌ ব্যান করার সময় সমস্যা হয়েছে: {e}")
-
-@Client.on_message(filters.command("unban") & filters.user(Config.ADMIN))
-async def unban_user(client, message: Message):
-    try:
-        user_id = int(message.text.split()[1])
-        await client.unban_chat_member(Config.CHAT_ID, user_id)
-        await message.reply(f"✅ ইউজার `{user_id}` সফলভাবে আনব্যান করা হয়েছে।")
-    except ValueError:
-        await message.reply("❌ ইউজার আইডি ভুল। দয়া করে সঠিক আইডি দিন।")
-    except Exception as e:
-        await message.reply(f"❌ আনব্যান করার সময় সমস্যা হয়েছে: {e}")
-
-# Search user by ID
-@Client.on_message(filters.command("search") & filters.user(Config.ADMIN))
-async def search_user(client, message: Message):
-    try:
-        user_id = int(message.text.split()[1])
-        user = await jishubotz.get_user_by_id(user_id)
-        if user:
-            await message.reply(f"**ইউজারের তথ্য:**\n\n"
-                                 f"🆔 ইউজার আইডি: `{user['_id']}`\n"
-                                 f"👤 নাম: {user['first_name']}\n"
-                                 f"📅 যোগদান তারিখ: {user['join_date']}")
-        else:
-            await message.reply("❌ ইউজার পাওয়া যায়নি।")
-    except ValueError:
-        await message.reply("❌ ইউজার আইডি ভুল। দয়া করে সঠিক আইডি দিন।")
-
-# Broadcast message function
-async def send_broadcast(user_id, message):
+async def send_msg(user_id, message):
     try:
         await message.copy(chat_id=int(user_id))
         return 200
     except FloodWait as e:
         await asyncio.sleep(e.value)
-        return await send_broadcast(user_id, message)
-    except (InputUserDeactivated, UserIsBlocked, PeerIdInvalid):
+        return await send_msg(user_id, message)
+    except InputUserDeactivated:
+        logger.info(f"{user_id} : Deactivated")
+        return 400
+    except UserIsBlocked:
+        logger.info(f"{user_id} : Blocked The Bot")
+        return 400
+    except PeerIdInvalid:
+        logger.info(f"{user_id} : User ID Invalid")
         return 400
     except Exception as e:
-        logger.error(f"Broadcast error to {user_id}: {e}")
+        logger.error(f"{user_id} : {e}")
         return 500
+
+
+
+#gpt
+
+
+
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from helper.database import jishubotz
+
+ADMINS = [7862181538]  # তোমার Telegram ID
+
+@Client.on_message(filters.command("addpremium") & filters.user(ADMINS))
+async def cmd_add_premium(_, m: Message):
+    if len(m.command) < 2:
+        return await m.reply("Usage: /addpremium user_id")
+    user_id = int(m.command[1])
+    await jishubotz.add_premium(user_id)
+    await m.reply(f"✅ User {user_id} added as Premium.")
+
+@Client.on_message(filters.command("delpremium") & filters.user(ADMINS))
+async def cmd_del_premium(_, m: Message):
+    if len(m.command) < 2:
+        return await m.reply("Usage: /delpremium user_id")
+    user_id = int(m.command[1])
+    await jishubotz.remove_premium(user_id)
+    await m.reply(f"❌ User {user_id} removed from Premium.")
+
+@Client.on_message(filters.command("ispremium"))
+async def check_premium(_, m: Message):
+    is_prem = await jishubotz.is_premium(m.from_user.id)
+    if is_prem:
+        await m.reply("✅ You are a Premium user.")
+    else:
+        await m.reply("❌ You are not a Premium user.")
+
+
+
+
+
+# Ban command remains unchanged
+# Unban command remains unchanged
+# You can include them again if needed

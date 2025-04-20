@@ -1,5 +1,6 @@
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
+
 from helper.database import jishubotz
 from config import Config, Txt
 
@@ -41,7 +42,6 @@ async def start_cmd(client, message):
     user = message.from_user
     await jishubotz.add_user(client, message)
 
-    await message.chat.do("typing")
     await message.reply_text(
         text=Txt.START_TXT.format(user.mention),
         reply_markup=START_BUTTON,
@@ -54,8 +54,6 @@ async def start_cmd(client, message):
 async def cb_handler(client, query: CallbackQuery):
     data = query.data
     user = query.from_user
-
-    await query.message.chat.do("typing")
 
     if data == "start":
         await query.message.edit_text(
@@ -91,11 +89,12 @@ async def cb_handler(client, query: CallbackQuery):
 
     elif data == "profile":
         text = f"""**Your Profile**
+
 ━━━━━━━━━━━━━━━━━
-**Name:** {user.first_name}
-**Username:** @{user.username or 'N/A'}
-**User ID:** `{user.id}`
-**Premium User:** {"Yes" if user.is_premium else "No"}
+Name: {user.first_name}
+Username: @{user.username or 'N/A'}
+User ID: {user.id}
+Premium User: {"Yes" if user.is_premium else "No"}
 ━━━━━━━━━━━━━━━━━"""
         await query.message.edit_text(text, reply_markup=BACK_CLOSE)
 
@@ -110,39 +109,24 @@ Customize your experience:
 • Prefix / Suffix
 • Auto Rename Mode (coming soon!)
 ━━━━━━━━━━━━━━━━━
-            """,
+""",
             reply_markup=BACK_CLOSE
         )
 
     elif data == "meta":
-        await query.message.edit_text(
-            text=Txt.SEND_METADATA,
-            reply_markup=BACK_CLOSE
-        )
+        await query.message.edit_text(text=Txt.SEND_METADATA, reply_markup=BACK_CLOSE)
 
     elif data == "prefix":
-        await query.message.edit_text(
-            text=Txt.PREFIX,
-            reply_markup=BACK_CLOSE
-        )
+        await query.message.edit_text(text=Txt.PREFIX, reply_markup=BACK_CLOSE)
 
     elif data == "suffix":
-        await query.message.edit_text(
-            text=Txt.SUFFIX,
-            reply_markup=BACK_CLOSE
-        )
+        await query.message.edit_text(text=Txt.SUFFIX, reply_markup=BACK_CLOSE)
 
     elif data == "caption":
-        await query.message.edit_text(
-            text=Txt.CAPTION_TXT,
-            reply_markup=BACK_CLOSE
-        )
+        await query.message.edit_text(text=Txt.CAPTION_TXT, reply_markup=BACK_CLOSE)
 
     elif data == "thumbnail":
-        await query.message.edit_text(
-            text=Txt.THUMBNAIL_TXT,
-            reply_markup=BACK_CLOSE
-        )
+        await query.message.edit_text(text=Txt.THUMBNAIL_TXT, reply_markup=BACK_CLOSE)
 
     elif data == "close":
         try:
@@ -150,28 +134,27 @@ Customize your experience:
         except:
             pass
 
-    # Alerts & Admin Controls
+    # ───── Admin Actions ─────
     elif data.startswith("sendAlert"):
         user_id, reason = int(data.split("_")[1]), data.split("_")[2]
         try:
             await client.send_message(user_id, f"You're banned.\nReason: {reason}")
-            await query.message.edit(f"Alert sent to `{user_id}`.\nReason: {reason}")
+            await query.message.edit_text(f"Alert sent to `{user_id}`.\nReason: {reason}")
         except Exception as e:
-            await query.message.edit(f"Failed to send alert.\nError: {e}")
+            await query.message.edit_text(f"Failed to send alert.\nError: {e}")
 
     elif data.startswith("noAlert"):
         user_id = int(data.split("_")[1])
-        await query.message.edit(f"Ban on `{user_id}` executed silently.")
+        await query.message.edit_text(f"Ban on `{user_id}` executed silently.")
 
     elif data.startswith("sendUnbanAlert"):
         user_id = int(data.split("_")[1])
         try:
-            text = "You have been unbanned."
-            await client.send_message(user_id, text)
-            await query.message.edit(f"Unban alert sent to `{user_id}`.")
+            await client.send_message(user_id, "You have been unbanned.")
+            await query.message.edit_text(f"Unban alert sent to `{user_id}`.")
         except Exception as e:
-            await query.message.edit(f"Failed to send unban alert.\nError: {e}")
+            await query.message.edit_text(f"Failed to send unban alert.\nError: {e}")
 
     elif data.startswith("NoUnbanAlert"):
         user_id = int(data.split("_")[1])
-        await query.message.edit(f"Unban on `{user_id}` executed silently.")
+        await query.message.edit_text(f"Unban on `{user_id}` executed silently.")

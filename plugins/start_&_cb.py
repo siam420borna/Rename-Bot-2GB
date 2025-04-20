@@ -1,283 +1,177 @@
-import os
-import logging
 from pyrogram import Client, filters
-from pyrogram.types import (
-    InlineKeyboardButton,
-    InlineKeyboardMarkup,
-    Message,
-    CallbackQuery,
-    ForceReply
-)
-from config import Config, Txt
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from helper.database import jishubotz
-from helper.utils import (
-    generate_random_string,
-    is_valid_filename,
-    get_file_extension
-)
+from config import Config, Txt
 
-# Logging configuration
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+# ──────── Button Layouts ────────
 
-# States for conversation handler
-class States:
-    WAITING_FILE = 0
-    WAITING_NEW_NAME = 1
-    WAITING_PREFIX = 2
-    WAITING_SUFFIX = 3
-    WAITING_CAPTION = 4
+START_BUTTON = InlineKeyboardMarkup([
+    [InlineKeyboardButton("📚 Help", callback_data="help"),
+     InlineKeyboardButton("ℹ️ About", callback_data="about")],
+    [InlineKeyboardButton("👤 Profile", callback_data="profile"),
+     InlineKeyboardButton("⚙️ Settings", callback_data="settings")],
+    [InlineKeyboardButton("👨‍💻 Developer", url="https://telegram.me/TechifyRahul")],
+    [InlineKeyboardButton("❌ Close", callback_data="close")]
+])
+
+HELP_BUTTON = InlineKeyboardMarkup([
+    [InlineKeyboardButton("📝 Metadata", callback_data="meta")],
+    [InlineKeyboardButton("🔤 Prefix", callback_data="prefix"),
+     InlineKeyboardButton("🔚 Suffix", callback_data="suffix")],
+    [InlineKeyboardButton("🖼️ Thumbnail", callback_data="thumbnail"),
+     InlineKeyboardButton("📝 Caption", callback_data="caption")],
+    [InlineKeyboardButton("🏠 Home", callback_data="start")]
+])
+
+ABOUT_BUTTON = InlineKeyboardMarkup([
+    [InlineKeyboardButton("📂 GitHub", url="https://github.com/TechifyBots"),
+     InlineKeyboardButton("💸 Donate", callback_data="donate")],
+    [InlineKeyboardButton("🏠 Home", callback_data="start")]
+])
+
+BACK_CLOSE = InlineKeyboardMarkup([
+    [InlineKeyboardButton("🔙 Back", callback_data="help"),
+     InlineKeyboardButton("❌ Close", callback_data="close")]
+])
+
+# ──────── Start Command ────────
 
 @Client.on_message(filters.private & filters.command("start"))
-async def start(client: Client, message: Message):
-    """Start command handler with user registration"""
+async def start_cmd(client, message):
     user = message.from_user
     await jishubotz.add_user(client, message)
-    
-    buttons = [
-        [InlineKeyboardButton('• ᴀʙᴏᴜᴛ •', callback_data='about'),
-         InlineKeyboardButton('• ʜᴇʟᴘ •', callback_data='help')],
-        [InlineKeyboardButton("♻ ᴅᴇᴠᴇʟᴏᴘᴇʀ ♻", url=Config.DEVELOPER_URL)]
-    ]
-    
-    if Config.START_PIC:
-        await message.reply_photo(
-            Config.START_PIC,
-            caption=Txt.START_TXT.format(user.mention),
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
-    else:
-        await message.reply_text(
+
+    await message.chat.do("typing")
+    await message.reply_text(
+        text=Txt.START_TXT.format(user.mention),
+        reply_markup=START_BUTTON,
+        disable_web_page_preview=True
+    )
+
+# ──────── Callback Handler ────────
+
+@Client.on_callback_query()
+async def cb_handler(client, query: CallbackQuery):
+    data = query.data
+    user = query.from_user
+
+    await query.message.chat.do("typing")
+
+    if data == "start":
+        await query.message.edit_text(
             text=Txt.START_TXT.format(user.mention),
-            reply_markup=InlineKeyboardMarkup(buttons),
+            reply_markup=START_BUTTON,
             disable_web_page_preview=True
         )
 
-@Client.on_message(filters.private & (filters.document | filters.video | filters.audio))
-async def handle_file(client: Client, message: Message):
-    """Handle incoming files for renaming"""
-    try:
-        # Store file info in user data
-        file = message.document or message.video or message.audio
-        file_name = file.file_name
-        file_id = file.file_id
-        
-        # Generate a random string for temp file naming
-        temp_name = f"temp_{generate_random_string(8)}"
-        
-        # Store file info
-        client.user_data[message.from_user.id] = {
-            'file_id': file_id,
-            'original_name': file_name,
-            'temp_name': temp_name,
-            'file_type': message.media.value
-        }
-        
-        # Ask for new file name
-        await message.reply_text(
-            Txt.ASK_NEW_NAME,
-            reply_markup=ForceReply(selective=True)
-        )
-        
-        # Set state to waiting for new name
-        client.user_data[message.from_user.id]['state'] = States.WAITING_NEW_NAME
-        
-    except Exception as e:
-        logger.error(f"Error handling file: {e}")
-        await message.reply_text(Txt.ERROR_GENERIC)
-
-@Client.on_message(filters.private & filters.reply)
-async def handle_reply(client: Client, message: Message):
-    """Handle user replies (new filename, prefix, suffix)"""
-    user_id = message.from_user.id
-    user_data = client.user_data.get(user_id, {})
-    
-    if not user_data:
-        return
-    
-    current_state = user_data.get('state')
-    
-    if current_state == States.WAITING_NEW_NAME:
-        # Process new filename
-        new_name = message.text.strip()
-        
-        if not is_valid_filename(new_name):
-            await message.reply_text(Txt.INVALID_FILENAME)
-            return
-        
-        # Add extension if missing
-        original_ext = os.path.splitext(user_data['original_name'])[1]
-        if not os.path.splitext(new_name)[1]:
-            new_name += original_ext
-        
-        user_data['new_name'] = new_name
-        
-        # Ask if user wants to add prefix/suffix
-        buttons = [
-            [InlineKeyboardButton("➕ ᴘʀᴇꜰɪx", callback_data="add_prefix"),
-             InlineKeyboardButton("➕ sᴜꜰꜰɪx", callback_data="add_suffix")],
-            [InlineKeyboardButton("⏩ sᴋɪᴘ", callback_data="skip_modifiers")]
-        ]
-        
-        await message.reply_text(
-            Txt.ASK_MODIFIERS,
-            reply_markup=InlineKeyboardMarkup(buttons)
-        )
-        
-        user_data['state'] = States.WAITING_PREFIX
-        
-    elif current_state == States.WAITING_PREFIX:
-        # Process prefix
-        user_data['prefix'] = message.text.strip()
-        await message.reply_text(
-            Txt.PREFIX_ADDED.format(user_data['prefix']),
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("✅ ᴄᴏɴᴛɪɴᴜᴇ", callback_data="process_file")]
-            ])
-        )
-        
-    elif current_state == States.WAITING_SUFFIX:
-        # Process suffix
-        user_data['suffix'] = message.text.strip()
-        await message.reply_text(
-            Txt.SUFFIX_ADDED.format(user_data['suffix']),
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("✅ ᴄᴏɴᴛɪɴᴜᴇ", callback_data="process_file")]
-            ])
-        )
-
-@Client.on_callback_query()
-async def callback_handler(client: Client, query: CallbackQuery):
-    """Handle all callback queries"""
-    data = query.data
-    user_id = query.from_user.id
-    user_data = client.user_data.get(user_id, {})
-    
-    if data == "start":
-        await handle_start_callback(query)
-    
     elif data == "help":
-        await handle_help_callback(query)
-    
-    elif data == "about":
-        await handle_about_callback(query)
-    
-    elif data == "add_prefix":
-        await query.message.edit_text(Txt.ASK_PREFIX)
-        client.user_data[user_id]['state'] = States.WAITING_PREFIX
-    
-    elif data == "add_suffix":
-        await query.message.edit_text(Txt.ASK_SUFFIX)
-        client.user_data[user_id]['state'] = States.WAITING_SUFFIX
-    
-    elif data == "skip_modifiers":
-        await process_file_renaming(client, query)
-    
-    elif data == "process_file":
-        await process_file_renaming(client, query)
-    
-    elif data == "close":
-        await query.message.delete()
-    
-    # Add other callback handlers as needed
-
-async def process_file_renaming(client: Client, query: CallbackQuery):
-    """Process the file renaming operation"""
-    user_id = query.from_user.id
-    user_data = client.user_data.get(user_id, {})
-    
-    try:
-        # Construct final filename
-        prefix = user_data.get('prefix', '')
-        suffix = user_data.get('suffix', '')
-        new_name = user_data['new_name']
-        
-        final_name = f"{prefix}{new_name}{suffix}"
-        
-        # Download the file
-        download_msg = await query.message.reply_text(Txt.DOWNLOADING)
-        file_path = await client.download_media(
-            user_data['file_id'],
-            file_name=os.path.join("downloads", user_data['temp_name'])
+        await query.message.edit_text(
+            text=Txt.HELP_TXT,
+            reply_markup=HELP_BUTTON,
+            disable_web_page_preview=True
         )
-        
-        # Rename the file
-        new_path = os.path.join("downloads", final_name)
-        os.rename(file_path, new_path)
-        
-        # Upload the renamed file
-        await download_msg.edit_text(Txt.UPLOADING)
-        
-        if user_data['file_type'] == 'document':
-            await client.send_document(
-                chat_id=user_id,
-                document=new_path,
-                file_name=final_name,
-                caption=Txt.FILE_CAPTION.format(final_name)
-            )
-        elif user_data['file_type'] == 'video':
-            await client.send_video(
-                chat_id=user_id,
-                video=new_path,
-                caption=Txt.FILE_CAPTION.format(final_name)
-            )
-        elif user_data['file_type'] == 'audio':
-            await client.send_audio(
-                chat_id=user_id,
-                audio=new_path,
-                caption=Txt.FILE_CAPTION.format(final_name)
-            )
-        
-        # Clean up
-        os.remove(new_path)
-        await download_msg.delete()
-        await query.message.edit_text(Txt.SUCCESS_MSG)
-        
-        # Clear user data
-        del client.user_data[user_id]
-        
-    except Exception as e:
-        logger.error(f"Error processing file: {e}")
-        await query.message.edit_text(Txt.ERROR_PROCESSING)
-        if user_id in client.user_data:
-            del client.user_data[user_id]
 
-# Helper functions for callback handlers
-async def handle_start_callback(query: CallbackQuery):
-    await query.message.edit_text(
-        text=Txt.START_TXT.format(query.from_user.mention),
-        disable_web_page_preview=True,
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton('• ᴀʙᴏᴜᴛ •', callback_data='about'),
-             InlineKeyboardButton('• ʜᴇʟᴘ •', callback_data='help')],
-            [InlineKeyboardButton("♻ ᴅᴇᴠᴇʟᴏᴘᴇʀ ♻", url=Config.DEVELOPER_URL)]
-        ])
-    )
+    elif data == "about":
+        await query.message.edit_text(
+            text=Txt.ABOUT_TXT,
+            reply_markup=ABOUT_BUTTON,
+            disable_web_page_preview=True
+        )
 
-async def handle_help_callback(query: CallbackQuery):
-    await query.message.edit_text(
-        text=Txt.HELP_TXT,
-        disable_web_page_preview=True,
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("sᴇᴛ ᴍᴇᴛᴀᴅᴀᴛᴀ", callback_data="meta")],
-            [InlineKeyboardButton("ᴘʀᴇꜰɪx", callback_data="prefix"),
-             InlineKeyboardButton("sᴜꜰꜰɪx", callback_data="suffix")],
-            [InlineKeyboardButton("ᴄᴀᴘᴛɪᴏɴ", callback_data="caption"),
-             InlineKeyboardButton("ᴛʜᴜᴍʙɴᴀɪʟ", callback_data="thumbnail")],
-            [InlineKeyboardButton("ʜᴏᴍᴇ", callback_data="start")]
-        ])
-    )
+    elif data == "donate":
+        await query.message.edit_text(
+            text=Txt.DONATE_TXT,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🤖 More Bots", url="https://telegram.me/TechifyBots/8")],
+                [InlineKeyboardButton("🔙 Back", callback_data="about"),
+                 InlineKeyboardButton("❌ Close", callback_data="close")]
+            ]),
+            disable_web_page_preview=True
+        )
 
-async def handle_about_callback(query: CallbackQuery):
-    await query.message.edit_text(
-        text=Txt.ABOUT_TXT,
-        disable_web_page_preview=True,
-        reply_markup=InlineKeyboardMarkup([
-            [InlineKeyboardButton("👨‍💻  ʀᴇᴘᴏ", url=Config.REPO_URL),
-             InlineKeyboardButton("💥  ᴅᴏɴᴀᴛᴇ", callback_data="donate")],
-            [InlineKeyboardButton("ʜᴏᴍᴇ", callback_data="start")]
-        ])
-    )
+    elif data == "profile":
+        text = f"""**Your Profile**
+━━━━━━━━━━━━━━━━━
+**Name:** {user.first_name}
+**Username:** @{user.username or 'N/A'}
+**User ID:** `{user.id}`
+**Premium User:** {"Yes" if user.is_premium else "No"}
+━━━━━━━━━━━━━━━━━"""
+        await query.message.edit_text(text, reply_markup=BACK_CLOSE)
+
+    elif data == "settings":
+        await query.message.edit_text(
+            text="""
+**Settings Panel**
+━━━━━━━━━━━━━━━━━
+Customize your experience:
+• Custom Thumbnail
+• Caption Templates
+• Prefix / Suffix
+• Auto Rename Mode (coming soon!)
+━━━━━━━━━━━━━━━━━
+            """,
+            reply_markup=BACK_CLOSE
+        )
+
+    elif data == "meta":
+        await query.message.edit_text(
+            text=Txt.SEND_METADATA,
+            reply_markup=BACK_CLOSE
+        )
+
+    elif data == "prefix":
+        await query.message.edit_text(
+            text=Txt.PREFIX,
+            reply_markup=BACK_CLOSE
+        )
+
+    elif data == "suffix":
+        await query.message.edit_text(
+            text=Txt.SUFFIX,
+            reply_markup=BACK_CLOSE
+        )
+
+    elif data == "caption":
+        await query.message.edit_text(
+            text=Txt.CAPTION_TXT,
+            reply_markup=BACK_CLOSE
+        )
+
+    elif data == "thumbnail":
+        await query.message.edit_text(
+            text=Txt.THUMBNAIL_TXT,
+            reply_markup=BACK_CLOSE
+        )
+
+    elif data == "close":
+        try:
+            await query.message.delete()
+        except:
+            pass
+
+    # Alerts & Admin Controls
+    elif data.startswith("sendAlert"):
+        user_id, reason = int(data.split("_")[1]), data.split("_")[2]
+        try:
+            await client.send_message(user_id, f"You're banned.\nReason: {reason}")
+            await query.message.edit(f"Alert sent to `{user_id}`.\nReason: {reason}")
+        except Exception as e:
+            await query.message.edit(f"Failed to send alert.\nError: {e}")
+
+    elif data.startswith("noAlert"):
+        user_id = int(data.split("_")[1])
+        await query.message.edit(f"Ban on `{user_id}` executed silently.")
+
+    elif data.startswith("sendUnbanAlert"):
+        user_id = int(data.split("_")[1])
+        try:
+            text = "You have been unbanned."
+            await client.send_message(user_id, text)
+            await query.message.edit(f"Unban alert sent to `{user_id}`.")
+        except Exception as e:
+            await query.message.edit(f"Failed to send unban alert.\nError: {e}")
+
+    elif data.startswith("NoUnbanAlert"):
+        user_id = int(data.split("_")[1])
+        await query.message.edit(f"Unban on `{user_id}` executed silently.")

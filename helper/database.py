@@ -7,7 +7,7 @@ from .utils import send_log
 
 class Database:
     """
-    MongoDB handler for user data, thumbnail, premium and ban features.
+    MongoDB handler for user data, thumbnail, premium, and ban features.
     """
 
     def __init__(self, uri, database_name):
@@ -120,12 +120,15 @@ class Database:
 
     # Premium Control
     async def add_premium(self, user_id: int):
+        # Ensure user exists in the premium collection
         await self.premium.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
 
     async def remove_premium(self, user_id: int):
+        # Remove user from premium collection
         await self.premium.delete_one({"_id": user_id})
 
     async def is_premium(self, user_id: int):
+        # Check if user is in the premium collection
         user = await self.premium.find_one({"_id": user_id})
         return bool(user and user.get("premium", False))
 

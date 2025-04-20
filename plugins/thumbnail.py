@@ -1,4 +1,10 @@
-from pyrogram import Client, filters from helper.database import jishubotz, set_watermark, get_watermark, del_watermark from pyrogram.types import Message from PIL import Image, ImageEnhance, ImageDraw, ImageFont import os import subprocess
+from pyrogram import Client, filters
+from helper.database import jishubotz, set_watermark, get_watermark, del_watermark
+from pyrogram.types import Message
+from PIL import Image, ImageEnhance, ImageDraw, ImageFont
+import os
+import subprocess
+
 
 @Client.on_message(filters.private & filters.command(['view_thumb', 'viewthumb'])) async def viewthumb(client, message):
 thumb = await jishubotz.get_thumbnail(message.from_user.id) if thumb: await client.send_photo(chat_id=message.chat.id, photo=thumb) else: await message.reply_text("You don't have any thumbnail ❌")

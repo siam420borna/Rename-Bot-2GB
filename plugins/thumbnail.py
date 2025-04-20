@@ -4,55 +4,73 @@ from PIL import Image, ImageEnhance
 import os
 import subprocess
 
-@Client.on_message(filters.private & filters.video)
-async def addthumbs_from_video(client, message):
-    mkn = await message.reply_text("Processing high-quality thumbnail...")
+@Client.on_message(filters.private & filters.command(['view_thumb', 'viewthumb']))
+async def viewthumb(client, message):    
+    thumb = await jishubotz.get_thumbnail(message.from_user.id)
+    if thumb:
+        await client.send_photo(chat_id=message.chat.id, photo=thumb)
+    else:
+        await message.reply_text("**You don't have any thumbnail ❌**") 
+
+@Client.on_message(filters.private & filters.command(['del_thumb', 'delthumb']))
+async def removethumb(client, message):
+    await jishubotz.set_thumbnail(message.from_user.id, file_id=None)
+    await message.reply_text("**Thumbnail deleted successfully 🗑️**")
+
+@Client.on_message(filters.private & (filters.photo | filters.video))
+async def addthumbs(client, message):
+    mkn = await message.reply_text("Processing thumbnail...")
 
     try:
-        # Download video
-        video_path = await message.download(file_name=f"{message.from_user.id}_video.mp4")
-        thumb_path = f"{message.from_user.id}_thumb.jpg"
+        file_path = await message.download(file_name=f"{message.from_user.id}_temp")
 
-        # Extract frame from video using ffmpeg (1st second)
-        subprocess.run([
-            "ffmpeg", "-i", video_path,
-            "-ss", "00:00:01.000", "-vframes", "1", thumb_path
-        ], check=True)
+        # Determine if image or video
+        if message.photo:
+            thumb_path = file_path
+        else:
+            thumb_path = f"{file_path}_thumb.jpg"
+            cmd = [
+                "ffmpeg", "-i", file_path,
+                "-ss", "00:00:01.000", "-vframes", "1",
+                "-vf", "scale=1280:-1",
+                thumb_path
+            ]
+            subprocess.run(cmd, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
 
-        # Open extracted image
+        # Open thumbnail and logo
         main_image = Image.open(thumb_path).convert("RGBA")
         logo = Image.open("logo.png").convert("RGBA")
 
-        # Resize logo
+        # Resize logo to 10% of image width
         main_width, _ = main_image.size
         logo_size = int(main_width * 0.1)
         logo = logo.resize((logo_size, logo_size))
 
-        # Add transparency to logo
+        # Transparency
         alpha = logo.split()[3]
         alpha = ImageEnhance.Brightness(alpha).enhance(0.6)
         logo.putalpha(alpha)
 
-        # Paste logo top-left
+        # Paste logo at top-left
         main_image.paste(logo, (15, 15), logo)
 
         output_path = f"thumb_{message.from_user.id}.png"
         main_image.save(output_path, "PNG")
 
-        # Send back for preview
+        # Send and save
         sent = await client.send_photo(
             chat_id=message.chat.id,
             photo=output_path,
-            caption="✅ Video thumbnail created with logo!"
+            caption="✅ Thumbnail with logo applied!"
         )
-
         await jishubotz.set_thumbnail(message.from_user.id, file_id=sent.photo.file_id)
         await mkn.edit("**Thumbnail saved successfully ✅**")
 
         # Cleanup
-        os.remove(video_path)
+        os.remove(file_path)
+        if not message.photo:
+            os.remove(thumb_path)
         os.remove(output_path)
-        os.remove(thumb_path)
 
     except Exception as e:
-        await mkn.edit(f"❌ Failed to create thumbnail.\nError: `{e}`")
+        await mkn.edit(f"❌ Failed to process thumbnail.\nError: `{e}`")

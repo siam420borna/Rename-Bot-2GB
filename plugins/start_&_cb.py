@@ -2,6 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
 from helper.database import jishubotz
 from config import Config, Txt
+from helper.database import set_watermark, get_watermark, del_watermark
 
 
 @Client.on_message(filters.private & filters.command("start"))

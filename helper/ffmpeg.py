@@ -13,11 +13,14 @@ async def fix_thumb(thumb):
         if thumb and os.path.exists(thumb):
             parser = createParser(thumb)
             metadata = extractMetadata(parser)
-            if metadata.has("width"):
+            if metadata and metadata.has("width") and metadata.has("height"):
                 width = metadata.get("width")
-            if metadata.has("height"):
                 height = metadata.get("height")
+            else:
+                with Image.open(thumb) as img:
+                    width, height = img.size
 
+            # Enhance thumbnail
             with Image.open(thumb) as img:
                 img = img.convert("RGB")
                 resized_img = img.resize((width, height))
@@ -25,7 +28,8 @@ async def fix_thumb(thumb):
                 enhanced_img = enhancer.enhance(1.3)
                 enhanced_img.save(thumb, "JPEG", quality=95)
 
-            parser.close()
+            if parser:
+                parser.close()
     except Exception as e:
         print("fix_thumb error:", e)
         thumb = None

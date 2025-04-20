@@ -128,9 +128,11 @@ class Database:
 
 import asyncio
 from pyrogram.types import User
-from your_database_lib import db  # replace with your own DB method if needed
+from pymongo import MongoClient
 
-# Add a user to premium list
+MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://siam420riiya:siam420riiya@cluster0.mstqzjq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+client = MongoClient(MONGO_URI)
+db = client["JishuBotz"]
 async def add_premium(user_id: int):
     await db.premium.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
 

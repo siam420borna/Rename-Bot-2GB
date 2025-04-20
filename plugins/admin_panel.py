@@ -95,13 +95,13 @@ async def send_msg(user_id, message):
 
 
 
-from pyrogram import filters
+from pyrogram import Client, filters
 from pyrogram.types import Message
 from helper.database import jishubotz
 
-ADMINS = [7862181538]  # Replace with your own Telegram user ID
+ADMINS = [7862181538]  # তোমার Telegram ID
 
-@app.on_message(filters.command("addpremium") & filters.user(ADMINS))
+@Client.on_message(filters.command("addpremium") & filters.user(ADMINS))
 async def cmd_add_premium(_, m: Message):
     if len(m.command) < 2:
         return await m.reply("Usage: /addpremium user_id")
@@ -109,7 +109,7 @@ async def cmd_add_premium(_, m: Message):
     await jishubotz.add_premium(user_id)
     await m.reply(f"✅ User {user_id} added as Premium.")
 
-@app.on_message(filters.command("delpremium") & filters.user(ADMINS))
+@Client.on_message(filters.command("delpremium") & filters.user(ADMINS))
 async def cmd_del_premium(_, m: Message):
     if len(m.command) < 2:
         return await m.reply("Usage: /delpremium user_id")
@@ -117,14 +117,13 @@ async def cmd_del_premium(_, m: Message):
     await jishubotz.remove_premium(user_id)
     await m.reply(f"❌ User {user_id} removed from Premium.")
 
-@app.on_message(filters.command("ispremium"))
+@Client.on_message(filters.command("ispremium"))
 async def check_premium(_, m: Message):
     is_prem = await jishubotz.is_premium(m.from_user.id)
     if is_prem:
         await m.reply("✅ You are a Premium user.")
     else:
         await m.reply("❌ You are not a Premium user.")
-
 
 
 

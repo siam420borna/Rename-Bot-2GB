@@ -131,6 +131,41 @@ async def add_watermark_to_video(video_path, user_id):
 
 
 
+from helper.database import get_watermark_position
+
+async def add_watermark_to_video(video_path, user_id):
+    watermark_path = f"watermarks/{user_id}.png"
+    
+    if not os.path.exists(watermark_path):
+        return video_path
+    
+    output_path = f"{video_path}_watermarked.mp4"
+    position = await get_watermark_position(user_id)
+    
+    positions = {
+        "top-left": "10:10",
+        "top-right": "W-w-10:10",
+        "bottom-left": "10:H-h-10",
+        "bottom-right": "W-w-10:H-h-10",
+        "center": "(W-w)/2:(H-h)/2"
+    }
+    pos_str = positions.get(position, "W-w-10:H-h-10")
+    
+    cmd = f"""
+    ffmpeg -i "{video_path}" -i "{watermark_path}" -filter_complex "[0:v][1:v] overlay={pos_str}" \
+    -c:a copy -y "{output_path}"
+    """
+    process = await asyncio.create_subprocess_shell(cmd)
+    await process.communicate()
+
+    if os.path.exists(output_path):
+        return output_path
+    else:
+        return video_path
+
+
+
+
 # Jishu Developer 
 # Don't Remove Credit 🥺
 # Telegram Channel @JishuBotz & @Madflix_Bots

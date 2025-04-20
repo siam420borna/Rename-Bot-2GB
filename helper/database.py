@@ -136,3 +136,9 @@ async def get_watermark(user_id):
 
 async def del_watermark(user_id):
     await db.user_data.update_one({"_id": user_id}, {"$unset": {"watermark": ""}})
+
+
+
+async def get_user_by_id(user_id: int):
+    from .database import db  # যদি তোমার mongo client db নামে থাকে
+    return await db.users.find_one({"_id": user_id})

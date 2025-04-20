@@ -35,17 +35,18 @@ BACK_CLOSE = InlineKeyboardMarkup([
      InlineKeyboardButton("❌ Close", callback_data="close")]
 ])
 
-# ──────── Start Command ────────
+# ──────── /start Command ────────
 
 @Client.on_message(filters.private & filters.command("start"))
 async def start_cmd(client, message):
     user = message.from_user
     await jishubotz.add_user(client, message)
 
-    await message.reply_text(
-        text=Txt.START_TXT.format(user.mention),
-        reply_markup=START_BUTTON,
-        disable_web_page_preview=True
+    await message.chat.do("upload_photo")  # animation typing effect
+    await message.reply_photo(
+        photo=Config.START_PIC,  # Add your image URL or file ID in config.py
+        caption=Txt.START_TXT.format(user.mention),
+        reply_markup=START_BUTTON
     )
 
 # ──────── Callback Handler ────────
@@ -55,11 +56,17 @@ async def cb_handler(client, query: CallbackQuery):
     data = query.data
     user = query.from_user
 
+    await query.message.chat.do("typing")
+
     if data == "start":
-        await query.message.edit_text(
-            text=Txt.START_TXT.format(user.mention),
-            reply_markup=START_BUTTON,
-            disable_web_page_preview=True
+        try:
+            await query.message.delete()
+        except:
+            pass
+        await query.message.chat.send_photo(
+            photo=Config.START_PIC,
+            caption=Txt.START_TXT.format(user.mention),
+            reply_markup=START_BUTTON
         )
 
     elif data == "help":
@@ -134,7 +141,7 @@ Customize your experience:
         except:
             pass
 
-    # ───── Admin Actions ─────
+    # ───── Admin Controls ─────
     elif data.startswith("sendAlert"):
         user_id, reason = int(data.split("_")[1]), data.split("_")[2]
         try:

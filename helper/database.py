@@ -7,7 +7,7 @@ from .utils import send_log
 
 class Database:
     """
-    MongoDB handler for user data, thumbnail, premium, and ban features.
+    MongoDB handler for user data, thumbnail, and ban features.
     """
 
     def __init__(self, uri, database_name):
@@ -15,7 +15,6 @@ class Database:
         self.jishubotz = self._client[database_name]
         self.col = self.jishubotz.user
         self.bannedList = self.jishubotz.bannedList
-        self.premium = self.jishubotz.premium
 
     def new_user(self, id):
         return {
@@ -117,21 +116,6 @@ class Database:
             await self.bannedList.delete_one({'banId': int(user_id)})
             return True
         return False
-
-    # Premium Control
-    async def add_premium(self, user_id: int):
-        # Ensure user exists in the premium collection
-        await self.premium.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
-
-    async def remove_premium(self, user_id: int):
-        # Remove user from premium collection
-        await self.premium.delete_one({"_id": user_id})
-
-    async def is_premium(self, user_id: int):
-        # Check if user is in the premium collection
-        user = await self.premium.find_one({"_id": user_id})
-        return bool(user and user.get("premium", False))
-
 
 # Instantiate the DB
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)

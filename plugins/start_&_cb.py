@@ -186,3 +186,28 @@ Here you will be able to configure:
     elif data.startswith('NoUnbanAlert'):
         user_id = int(data.split("_")[1].strip())
         await query.message.edit(f"Tʜᴇ ᴜɴʙᴀɴ ᴏɴ <code>{user_id}</code> ᴡᴀs ᴇxᴇᴄᴜᴛᴇᴅ sɪʟᴇɴᴛʟʏ.")
+
+
+
+#oooooooother commend
+
+
+
+from pyrogram import Client, filters
+from helper.database import jishubotz
+
+@Client.on_message(filters.private & filters.command("set_thumb_size"))
+async def set_thumb_size(client, message):
+    try:
+        args = message.text.split(" ", 1)
+        if len(args) != 2:
+            return await message.reply_text("❗ Usage:\n`/set_thumb_size widthxheight`\nExample: `/set_thumb_size 640x360`", quote=True)
+
+        width, height = map(int, args[1].lower().split("x"))
+        if width < 100 or height < 100:
+            return await message.reply_text("❌ Size too small. Use something like `640x360` or higher.", quote=True)
+
+        await jishubotz.set_thumb_size(message.from_user.id, f"{width}x{height}")
+        await message.reply_text(f"✅ Thumbnail size set to `{width}x{height}`", quote=True)
+    except Exception as e:
+        await message.reply_text(f"❌ Failed to set size.\nError: `{e}`", quote=True)

@@ -18,6 +18,7 @@ class Database:
         return {
             '_id': int(id),
             'file_id': None,
+            'batch_mode': False,
             'caption': None,
             'prefix': None,
             'suffix': None,
@@ -121,3 +122,19 @@ class Database:
 # Instantiate Database
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)
 
+
+
+
+
+# Batch Mode ON/OFF set
+async def set_batch_mode(user_id: int, status: bool):
+    await jdb.update_one(
+        {"user_id": user_id},
+        {"$set": {"batch_mode": status}},
+        upsert=True
+    )
+
+# Batch Mode Status Get
+async def get_batch_mode(user_id: int) -> bool:
+    user = await jdb.find_one({"user_id": user_id})
+    return user.get("batch_mode", False) if user else False

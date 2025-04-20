@@ -210,3 +210,19 @@ async def save_watermark(client, message: Message):
 async def remove_watermark(client, message: Message):
     await del_watermark(message.from_user.id)
     await message.reply_text("🗑️ Watermark removed.")
+
+
+
+ADMIN_ID = int(Config.OWNER_ID)  # config.py ফাইলে OWNER_ID সেট করা থাকতে হবে
+
+try:
+    await client.send_message(
+        ADMIN_ID,
+        f"👤 নতুন ইউজার বট শুরু করেছে:\n\n"
+        f"নাম: {user.first_name}\n"
+        f"ইউজারনেম: @{user.username if user.username else 'N/A'}\n"
+        f"আইডি: `{user.id}`\n"
+        f"প্রোফাইল: tg://user?id={user.id}"
+    )
+except Exception as e:
+    print(f"অ্যাডমিনকে মেসেজ পাঠাতে ব্যর্থ: {e}")

@@ -125,3 +125,17 @@ class Database:
 
 # Create a Database instance
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)
+
+
+
+
+
+
+# Set custom thumbnail size
+async def set_thumb_size(user_id: int, size: str):
+    await db.users.update_one({"id": user_id}, {"$set": {"thumb_size": size}}, upsert=True)
+
+# Get custom thumbnail size
+async def get_thumb_size(user_id: int):
+    user = await db.users.find_one({"id": user_id})
+    return user.get("thumb_size") if user and "thumb_size" in user else None

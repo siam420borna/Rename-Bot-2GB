@@ -1,10 +1,13 @@
+import os
+import asyncio
 import motor.motor_asyncio
+from pymongo import MongoClient
 from config import Config
 from .utils import send_log
 
 class Database:
     """
-    Database handler for user settings and thumbnails.
+    MongoDB handler for user data, thumbnail, premium and ban features.
     """
 
     def __init__(self, uri, database_name):
@@ -12,8 +15,8 @@ class Database:
         self.jishubotz = self._client[database_name]
         self.col = self.jishubotz.user
         self.bannedList = self.jishubotz.bannedList
+        self.premium = self.jishubotz.premium
 
-    # Template for a new user document
     def new_user(self, id):
         return {
             '_id': int(id),
@@ -26,7 +29,7 @@ class Database:
             'metadata_code': 'By :- @TechifyBots'
         }
 
-    # User management
+    # User Management
     async def add_user(self, bot, message):
         user = message.from_user
         if not await self.is_user_exist(user.id):
@@ -45,7 +48,7 @@ class Database:
     async def delete_user(self, user_id):
         await self.col.delete_many({'_id': int(user_id)})
 
-    # Thumbnail handling
+    # Thumbnail
     async def set_thumbnail(self, id, file_id):
         await self.col.update_one({'_id': int(id)}, {'$set': {'file_id': file_id}})
 
@@ -53,7 +56,6 @@ class Database:
         user = await self.col.find_one({'_id': int(id)})
         return user.get('file_id') if user else None
 
-    # Custom thumbnail size
     async def set_thumb_size(self, id, size):
         await self.col.update_one({'_id': int(id)}, {'$set': {'thumb_size': size}})
 
@@ -61,7 +63,7 @@ class Database:
         user = await self.col.find_one({'_id': int(id)})
         return user.get('thumb_size') if user else None
 
-    # Caption settings
+    # Caption / Prefix / Suffix
     async def set_caption(self, id, caption):
         await self.col.update_one({'_id': int(id)}, {'$set': {'caption': caption}})
 
@@ -69,7 +71,6 @@ class Database:
         user = await self.col.find_one({'_id': int(id)})
         return user.get('caption') if user else None
 
-    # Prefix settings
     async def set_prefix(self, id, prefix):
         await self.col.update_one({'_id': int(id)}, {'$set': {'prefix': prefix}})
 
@@ -77,7 +78,6 @@ class Database:
         user = await self.col.find_one({'_id': int(id)})
         return user.get('prefix') if user else None
 
-    # Suffix settings
     async def set_suffix(self, id, suffix):
         await self.col.update_one({'_id': int(id)}, {'$set': {'suffix': suffix}})
 
@@ -85,7 +85,7 @@ class Database:
         user = await self.col.find_one({'_id': int(id)})
         return user.get('suffix') if user else None
 
-    # Metadata settings
+    # Metadata
     async def set_metadata(self, id, bool_meta):
         await self.col.update_one({'_id': int(id)}, {'$set': {'metadata': bool_meta}})
 
@@ -93,7 +93,6 @@ class Database:
         user = await self.col.find_one({'_id': int(id)})
         return user.get('metadata') if user else None
 
-    # Metadata code
     async def set_metadata_code(self, id, metadata_code):
         await self.col.update_one({'_id': int(id)}, {'$set': {'metadata_code': metadata_code}})
 
@@ -101,7 +100,7 @@ class Database:
         user = await self.col.find_one({'_id': int(id)})
         return user.get('metadata_code') if user else None
 
-    # Ban control
+    # Ban Control
     async def ban_user(self, user_id):
         exists = await self.bannedList.find_one({'banId': int(user_id)})
         if exists:
@@ -119,39 +118,17 @@ class Database:
             return True
         return False
 
+    # Premium Control
+    async def add_premium(self, user_id: int):
+        await self.premium.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
+
+    async def remove_premium(self, user_id: int):
+        await self.premium.delete_one({"_id": user_id})
+
+    async def is_premium(self, user_id: int):
+        user = await self.premium.find_one({"_id": user_id})
+        return bool(user and user.get("premium", False))
 
 
-
-
-#gpt
-
-
-import asyncio
-from pyrogram.types import User
-from pymongo import MongoClient
-
-MONGO_URI = os.getenv("MONGO_URI", "mongodb+srv://siam420riiya:siam420riiya@cluster0.mstqzjq.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
-client = MongoClient(MONGO_URI)
-db = client["JishuBotz"]
-async def add_premium(user_id: int):
-    await db.premium.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
-
-# Remove a user from premium list
-async def remove_premium(user_id: int):
-    await db.premium.delete_one({"_id": user_id})
-
-# Check if user is premium
-async def is_premium(user_id: int):
-    user = await db.premium.find_one({"_id": user_id})
-    return bool(user and user.get("premium", False))
-
-
-
-
-
-
-
-
-
-# Instantiate Database
+# Instantiate the DB
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)

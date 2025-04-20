@@ -1,9 +1,69 @@
 from pyrogram import Client, filters
-from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery
-from helper.database import jishubotz
-from config import Config, Txt
-from helper.database import set_watermark, get_watermark, del_watermark
-from pyrogram.types import Message
+from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
+from helper.database import jishubotz, set_watermark, get_watermark, del_watermark
+from config import Config
+
+
+class Txt:
+    START_TXT = """
+**👋 Hey {0}**,  
+𝗪𝗲𝗹𝗰𝗼𝗺𝗲 𝘁𝗼 **𝐒𝐢𝐚𝐦'𝐬 𝐑𝐞𝐧𝐚𝐦𝐞𝐫 𝐁𝐨𝐭**!
+
+With this bot, you can:
+• 𝗥𝗲𝗻𝗮𝗺𝗲 & 𝗲𝗱𝗶𝘁 𝗳𝗶𝗹𝗲𝘀  
+• 𝗖𝗼𝗻𝘃𝗲𝗿𝘁 𝘃𝗶𝗱𝗲𝗼 𝘁𝗼 𝗳𝗶𝗹𝗲 & 𝘃𝗶𝗰𝗲 𝘃𝗲𝗿𝘀𝗮  
+• 𝗦𝗲𝘁 𝗰𝘂𝘀𝘁𝗼𝗺: thumbnail, caption, prefix & suffix  
+
+**⚠️ Note:**  
+_Adult content renaming is strictly prohibited. Violators will be banned permanently!_
+"""
+
+    HELP_TXT = """
+**🛠 How to Use This Bot?**
+
+1. **Send any file** you want to rename  
+2. Bot will ask for new name — reply with it  
+3. You’ll get the renamed file with metadata
+
+**⚙ Features:**  
+• `/set_caption` - Set custom caption  
+• `/set_thumbnail` - Set custom thumbnail  
+• `/set_prefix` or `/set_suffix` - Customize filename  
+• `/set_watermark` - Add watermark text to video thumbnails  
+• `/del_watermark` - Remove watermark
+
+Use the buttons below for more info.
+"""
+
+    ABOUT_TXT = """
+**🤖 Bot Info:**
+
+• **Name:** Siam’s Renamer Bot  
+• **Language:** Python3  
+• **Library:** Pyrogram  
+• **Hosted On:** Railway  
+• **Creator:** [Siam (TechifyRahul)](https://t.me/TechifyRahul)
+
+This bot is completely free and open source.
+"""
+
+    DONATE_TXT = """
+**💸 Support the Developer**
+
+If you find this bot useful, consider supporting development:
+
+• UPI: `siam@ybl`  
+• PayPal: _Coming Soon_
+
+Even a small amount is appreciated!  
+"""
+
+    SEND_METADATA = "**📝 Please send your custom metadata (Title, Artist, etc).**"
+    PREFIX = "**✍ Send a prefix to add before filename.**"
+    SUFFIX = "**✍ Send a suffix to add after filename.**"
+    CAPTION_TXT = "**🖋 Send a custom caption (use {filename} to include file name).**"
+    THUMBNAIL_TXT = "**🖼 Send an image to set as custom thumbnail.**"
+
 
 @Client.on_message(filters.private & filters.command("start"))
 async def start(client, message):
@@ -11,9 +71,9 @@ async def start(client, message):
     await jishubotz.add_user(client, message)
 
     keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("• ᴀʙᴏᴜᴛ •", callback_data="about"),
-         InlineKeyboardButton("• ʜᴇʟᴘ •", callback_data="help")],
-        [InlineKeyboardButton("♻ ᴅᴇᴠᴇʟᴏᴘᴇʀ ♻", url="https://t.me/TechifyRahul")]
+        [InlineKeyboardButton("📚 ᴀʙᴏᴜᴛ", callback_data="about"),
+         InlineKeyboardButton("🛠 ʜᴇʟᴘ", callback_data="help")],
+        [InlineKeyboardButton("👨‍💻 ᴅᴇᴠᴇʟᴏᴘᴇʀ", url="https://t.me/TechifyRahul")]
     ])
 
     try:
@@ -30,7 +90,7 @@ async def start(client, message):
                 disable_web_page_preview=True
             )
     except Exception as e:
-        await message.reply_text(f"Error in /start: {e}")
+        await message.reply_text(f"⚠️ Error in /start:\n`{e}`")
 
 
 @Client.on_callback_query()
@@ -43,9 +103,9 @@ async def callback(client, query: CallbackQuery):
             text=Txt.START_TXT.format(user.mention),
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("• ᴀʙᴏᴜᴛ •", callback_data="about"),
-                 InlineKeyboardButton("• ʜᴇʟᴘ •", callback_data="help")],
-                [InlineKeyboardButton("♻ ᴅᴇᴠᴇʟᴏᴘᴇʀ ♻", url="https://t.me/TechifyRahul")]
+                [InlineKeyboardButton("📚 ᴀʙᴏᴜᴛ", callback_data="about"),
+                 InlineKeyboardButton("🛠 ʜᴇʟᴘ", callback_data="help")],
+                [InlineKeyboardButton("👨‍💻 ᴅᴇᴠᴇʟᴏᴘᴇʀ", url="https://t.me/TechifyRahul")]
             ])
         )
 
@@ -54,12 +114,12 @@ async def callback(client, query: CallbackQuery):
             text=Txt.HELP_TXT,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("sᴇᴛ ᴍᴇᴛᴀᴅᴀᴛᴀ", callback_data="meta")],
-                [InlineKeyboardButton("ᴘʀᴇꜰɪx", callback_data="prefix"),
-                 InlineKeyboardButton("sᴜꜰꜰɪx", callback_data="suffix")],
-                [InlineKeyboardButton("ᴄᴀᴘᴛɪᴏɴ", callback_data="caption"),
-                 InlineKeyboardButton("ᴛʜᴜᴍʙɴᴀɪʟ", callback_data="thumbnail")],
-                [InlineKeyboardButton("ʜᴏᴍᴇ", callback_data="start")]
+                [InlineKeyboardButton("📝 ᴍᴇᴛᴀᴅᴀᴛᴀ", callback_data="meta")],
+                [InlineKeyboardButton("📌 ᴘʀᴇꜰɪx", callback_data="prefix"),
+                 InlineKeyboardButton("📍 sᴜꜰꜰɪx", callback_data="suffix")],
+                [InlineKeyboardButton("🖋 ᴄᴀᴘᴛɪᴏɴ", callback_data="caption"),
+                 InlineKeyboardButton("🖼 ᴛʜᴜᴍʙɴᴀɪʟ", callback_data="thumbnail")],
+                [InlineKeyboardButton("🏠 ʜᴏᴍᴇ", callback_data="start")]
             ])
         )
 
@@ -68,9 +128,9 @@ async def callback(client, query: CallbackQuery):
             text=Txt.ABOUT_TXT,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("👨‍💻 ʀᴇᴘᴏ", url="https://github.com/TechifyBots"),
-                 InlineKeyboardButton("💥 ᴅᴏɴᴀᴛᴇ", callback_data="donate")],
-                [InlineKeyboardButton("ʜᴏᴍᴇ", callback_data="start")]
+                [InlineKeyboardButton("🔗 ʀᴇᴘᴏ", url="https://github.com/TechifyBots"),
+                 InlineKeyboardButton("💸 ᴅᴏɴᴀᴛᴇ", callback_data="donate")],
+                [InlineKeyboardButton("🏠 ʜᴏᴍᴇ", callback_data="start")]
             ])
         )
 
@@ -79,9 +139,9 @@ async def callback(client, query: CallbackQuery):
             text=Txt.DONATE_TXT,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🤖 ᴍᴏʀᴇ ʙᴏᴛs", url="https://t.me/TechifyBots/8")],
-                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="about"),
-                 InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+                [InlineKeyboardButton("🤖 ᴍᴏʀᴇ ʙᴏᴛꜱ", url="https://t.me/TechifyBots/8")],
+                [InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="about"),
+                 InlineKeyboardButton("❌ ᴄʟᴏꜱᴇ", callback_data="close")]
             ])
         )
 
@@ -89,8 +149,8 @@ async def callback(client, query: CallbackQuery):
         await query.message.edit_text(
             text=Txt.SEND_METADATA,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"),
-                 InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+                [InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="help"),
+                 InlineKeyboardButton("❌ ᴄʟᴏꜱᴇ", callback_data="close")]
             ])
         )
 
@@ -98,8 +158,8 @@ async def callback(client, query: CallbackQuery):
         await query.message.edit_text(
             text=Txt.PREFIX,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"),
-                 InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+                [InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="help"),
+                 InlineKeyboardButton("❌ ᴄʟᴏꜱᴇ", callback_data="close")]
             ])
         )
 
@@ -107,8 +167,8 @@ async def callback(client, query: CallbackQuery):
         await query.message.edit_text(
             text=Txt.SUFFIX,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"),
-                 InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+                [InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="help"),
+                 InlineKeyboardButton("❌ ᴄʟᴏꜱᴇ", callback_data="close")]
             ])
         )
 
@@ -116,8 +176,8 @@ async def callback(client, query: CallbackQuery):
         await query.message.edit_text(
             text=Txt.CAPTION_TXT,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"),
-                 InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+                [InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="help"),
+                 InlineKeyboardButton("❌ ᴄʟᴏꜱᴇ", callback_data="close")]
             ])
         )
 
@@ -125,8 +185,8 @@ async def callback(client, query: CallbackQuery):
         await query.message.edit_text(
             text=Txt.THUMBNAIL_TXT,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("ʙᴀᴄᴋ", callback_data="help"),
-                 InlineKeyboardButton("ᴄʟᴏsᴇ", callback_data="close")]
+                [InlineKeyboardButton("🔙 ʙᴀᴄᴋ", callback_data="help"),
+                 InlineKeyboardButton("❌ ᴄʟᴏꜱᴇ", callback_data="close")]
             ])
         )
 
@@ -135,7 +195,6 @@ async def callback(client, query: CallbackQuery):
             await query.message.delete()
         except:
             pass
-
 
 
 @Client.on_message(filters.private & filters.command("set_watermark"))

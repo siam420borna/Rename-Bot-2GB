@@ -1,53 +1,42 @@
 from pyrogram import Client, filters
 from helper.database import jishubotz
-from PIL import Image, ImageEnhance
+from PIL import Image, ImageDraw, ImageFont
 import os
-
-@Client.on_message(filters.private & filters.command(['view_thumb', 'viewthumb']))
-async def viewthumb(client, message):    
-    thumb = await jishubotz.get_thumbnail(message.from_user.id)
-    if thumb:
-        await client.send_photo(chat_id=message.chat.id, photo=thumb)
-    else:
-        await message.reply_text("**You don't have any thumbnail ❌**") 
-
-@Client.on_message(filters.private & filters.command(['del_thumb', 'delthumb']))
-async def removethumb(client, message):
-    await jishubotz.set_thumbnail(message.from_user.id, file_id=None)
-    await message.reply_text("**Thumbnail deleted successfully 🗑️**")
 
 @Client.on_message(filters.private & filters.photo)
 async def addthumbs(client, message):
     mkn = await message.reply_text("Processing thumbnail...")
 
     try:
+        # Download the photo
         photo_path = await message.download(file_name=f"{message.from_user.id}_original.jpg")
 
-        # Open main image and logo
+        # Load main image and logo
         main_image = Image.open(photo_path).convert("RGBA")
         logo = Image.open("logo.png").convert("RGBA")
 
-        # Resize logo to small TV-style (10% of width)
-        main_width, main_height = main_image.size
-        logo_size = int(main_width * 0.1)  # 10% of image width
-        logo = logo.resize((logo_size, logo_size))
+        # Resize main image and logo
+        main_image = main_image.resize((400, 300))
+        logo = logo.resize((70, 70))  # Small logo
 
-        # Add transparency
-        alpha = logo.split()[3]
-        alpha = ImageEnhance.Brightness(alpha).enhance(0.6)  # 60% opacity
-        logo.putalpha(alpha)
+        # Add logo to top-left
+        main_image.paste(logo, (10, 10), logo)
 
-        # Paste at top-left
-        position = (15, 15)
-        main_image.paste(logo, position, logo)
+        # Add watermark text
+        draw = ImageDraw.Draw(main_image)
+        font = ImageFont.truetype("arial.ttf", 20)  # Ensure this font exists
+        text = "YourChannelName"
+        draw.text((15, main_image.height - 30), text, font=font, fill=(255, 255, 255, 180))
 
+        # Save the final image
         output_path = f"thumb_{message.from_user.id}.png"
-        main_image.save(output_path, "PNG")
+        main_image.save(output_path)
 
+        # Upload image and get file_id
         sent = await client.send_photo(
             chat_id=message.chat.id,
             photo=output_path,
-            caption="✅ Thumbnail with logo applied!"
+            caption="✅ Thumbnail with logo and watermark applied!"
         )
 
         await jishubotz.set_thumbnail(message.from_user.id, file_id=sent.photo.file_id)

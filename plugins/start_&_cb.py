@@ -6,7 +6,7 @@ from config import Config
 
 class Txt:
     START_TXT = """
-**👋 হ্যালো {0}**,  
+**👋 Hello {0}**,  
 Welcome to **𝐒𝐢𝐚𝐦'𝐬 𝐑𝐞𝐧𝐚𝐦𝐞𝐫 𝐁𝐨𝐭**!
 
 With this bot, you can:

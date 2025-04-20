@@ -126,3 +126,18 @@ jishubotz = Database(Config.DB_URL, Config.DB_NAME)
 
 
 
+
+#gpt
+
+
+
+import asyncio
+
+watermark_positions = {}  # You can replace this with a real DB
+
+async def set_watermark_position(user_id, position):
+    watermark_positions[user_id] = position
+
+async def get_watermark_position(user_id):
+    return watermark_positions.get(user_id, "bottom-right")
+

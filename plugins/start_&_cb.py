@@ -60,7 +60,8 @@ Even a small amount is appreciated!
     SEND_METADATA = "**📝 Send your custom metadata (Title, Artist, etc).**"
     PREFIX = "**✍ Send a prefix to add before filename.**"
     SUFFIX = "**✍ Send a suffix to add after filename.**"
-    CAPTION_TXT = "**🖋 Send a custom caption (use {filename} to include file name).
+    CAPTION_TXT = """
+**🖋 Send a custom caption (use {filename} to include file name).
 
 ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ ᴀɴᴅ ᴍᴇᴅɪᴀ ᴛʏᴘᴇ
 ᴠᴀʀɪᴀʙʟᴇꜱ :         
@@ -71,8 +72,10 @@ Even a small amount is appreciated!
 ➜ /see_caption: ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.
 ➜ /del_caption: ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.
 
-ᴇxᴀᴍᴘʟᴇ: /setcaption ꜰɪʟᴇ ɴᴀᴍᴇ: {ꜰɪʟᴇɴᴀᴍᴇ}**"
-    THUMBNAIL_TXT = "**🖼 Send an image to set as custom thumbnail.
+ᴇxᴀᴍᴘʟᴇ: /setcaption ꜰɪʟᴇ ɴᴀᴍᴇ: {ꜰɪʟᴇɴᴀᴍᴇ}**
+"""
+    THUMBNAIL_TXT = """
+**🖼 Send an image to set as custom thumbnail.
 
 ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ᴛʜᴜᴍʙɴᴀɪʟ
 
@@ -80,7 +83,10 @@ Even a small amount is appreciated!
 ➜ /del_thumb: ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴏʟᴅ ᴛʜᴜᴍʙɴᴀɪʟ.
 ➜ /view_thumb: ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜʀʀᴇɴᴛ ᴛʜᴜᴍʙɴᴀɪʟ.
 
-ɴᴏᴛᴇ: ɪꜰ ɴᴏ ᴛʜᴜᴍʙɴᴀɪʟ ꜱᴀᴠᴇᴅ ɪɴ ʙᴏᴛ ᴛʜᴇɴ, ɪᴛ ᴡɪʟʟ ᴜꜱᴇ ᴛʜᴜᴍʙɴᴀɪʟ ᴏꜰ ᴛʜᴇ ᴏʀɪɢɪɴɪᴀʟ ꜰɪʟᴇ ᴛᴏ ꜱᴇᴛ ɪɴ ʀᴇɴᴀᴍᴇᴅ ꜰɪʟᴇ**"
+ɴᴏᴛᴇ: ɪꜰ ɴᴏ ᴛʜᴜᴍʙɴᴀɪʟ ꜱᴀᴠᴇᴅ ɪɴ ʙᴏᴛ ᴛʜᴇɴ, ɪᴛ ᴡɪʟʟ ᴜꜱᴇ ᴛʜᴜᴍʙɴᴀɪʟ ᴏꜰ ᴛʜᴇ ᴏʀɪɢɪɴɪᴀʟ ꜰɪʟᴇ ᴛᴏ ꜱᴇᴛ ɪɴ ʀᴇɴᴀᴍᴇᴅ ꜰɪʟᴇ**
+"""
+
+    WATERMARK_TXT = "**✒️ Send watermark text to be added to your thumbnails.**"
 
 
 @Client.on_message(filters.private & filters.command("start"))
@@ -137,6 +143,7 @@ async def callback(client, query: CallbackQuery):
                  InlineKeyboardButton("📍 Suffix", callback_data="suffix")],
                 [InlineKeyboardButton("🖋 Caption", callback_data="caption"),
                  InlineKeyboardButton("🖼 Thumbnail", callback_data="thumbnail")],
+                [InlineKeyboardButton("✒️ Watermark", callback_data="watermark")],
                 [InlineKeyboardButton("🏠 Home", callback_data="start")]
             ])
         )
@@ -202,6 +209,15 @@ async def callback(client, query: CallbackQuery):
     elif data == "thumbnail":
         await query.message.edit_text(
             text=Txt.THUMBNAIL_TXT,
+            reply_markup=InlineKeyboardMarkup([
+                [InlineKeyboardButton("🔙 Back", callback_data="help"),
+                 InlineKeyboardButton("❌ Close", callback_data="close")]
+            ])
+        )
+
+    elif data == "watermark":
+        await query.message.edit_text(
+            text=Txt.WATERMARK_TXT,
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("🔙 Back", callback_data="help"),
                  InlineKeyboardButton("❌ Close", callback_data="close")]

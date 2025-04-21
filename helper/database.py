@@ -158,3 +158,25 @@ async def set_watermark_size(user_id, size):
 async def get_watermark_size(user_id):
     # Fetch from DB (example: user = await db.find_one({"_id": user_id}); return user.get("font_size"))
     return 36  # Default fallback
+
+
+from motor.motor_asyncio import AsyncIOMotorClient
+
+client = AsyncIOMotorClient()
+db = client["your_db_name"]
+user_col = db["users"]
+
+class Database:
+    # ...
+
+    async def add_premium(self, user_id: int):
+        await user_col.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
+
+    async def remove_premium(self, user_id: int):
+        await user_col.update_one({"_id": user_id}, {"$unset": {"premium": ""}})
+
+    async def is_premium(self, user_id: int) -> bool:
+        user = await user_col.find_one({"_id": user_id})
+        return user and user.get("premium", False)
+
+jishubotz = Database()

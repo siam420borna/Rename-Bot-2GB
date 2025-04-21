@@ -3,318 +3,324 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQ
 from helper.database import jishubotz, set_watermark, get_watermark, del_watermark
 from config import Config
 
-
 class Txt:
     START_TXT = """
-**👋 Hello {0}**,  
-Welcome to **𝐒𝐢𝐚𝐦'𝐬 𝐑𝐞𝐧𝐚𝐦𝐞𝐫 𝐁𝐨𝐭**!
+🌟 **Welcome, {0}!** 🌟
 
-With this bot, you can:
-• Rename & edit files  
-• Convert video to file & vice versa  
-• Set custom: thumbnail, caption, prefix & suffix  
+✨ **Siam's Renamer Bot** is here to make your files shine! ✨  
+Here’s what you can do:  
+✅ **Rename** & **edit** files with ease  
+✅ Convert **video to file** or **file to video**  
+✅ Add custom **thumbnails**, **captions**, **prefixes**, & **suffixes**
 
-**⚠️ Warning:**  
-Adult content is strictly prohibited. Offenders will be **banned permanently**!
+⚠️ **Important**: Adult content is strictly **prohibited**. Violators will be **banned permanently**!
+
+👉 Press the buttons below to explore more! 🚀
 """
 
     HELP_TXT = """
-**🛠 How to Use This Bot?**
+🛠 **How to Use Siam's Renamer Bot** 🛠
 
-1. Just **send any file** you want to rename  
-2. Bot will ask for new name — reply with it  
-3. You’ll get the renamed file with metadata
+1️⃣ **Send a file** you want to rename  
+2️⃣ Reply with the **new name** when prompted  
+3️⃣ Receive your **renamed file** with updated metadata  
 
-**⚙ Features:**  
-• `/set_caption` - Set custom caption    
-• `/set_prefix` or `/set_suffix` - Customize filename  
-• `/set_watermark` - Add watermark text on video thumbnail  
-• `/del_watermark` - Remove watermark
+🎯 **Features**:  
+• `/set_caption` - Add a custom caption  
+• `/set_prefix` or `/set_suffix` - Customize filenames  
+• `/set_watermark` - Add text watermark to video thumbnails  
+• `/del_watermark` - Remove watermark  
 
-Use the buttons below for more info.
+📚 Explore more with the buttons below! 👇
 """
 
     ABOUT_TXT = """
-**🤖 Bot Info:**
+ℹ️ **About Siam's Renamer Bot** ℹ️
 
-• **Name:** Siam’s Renamer Bot  
-• **Language:** Python3  
-• **Library:** Pyrogram  
-• **Hosted On:** Railway  
-• **Creator:** [Siam (Boss)](https://t.me/movie_channel8)
+• **Name**: Siam’s Renamer Bot  
+• **Language**: Python 3  
+• **Library**: Pyrogram  
+• **Hosted On**: Railway  
+• **Creator**: Siam (The Boss) 😎  
 
-This bot is completely free and open source.
+💡 This bot is **free** and **open-source**, built for your convenience!  
+
+👉 Check out the repo or support the creator below! 🚀
 """
 
     DONATE_TXT = """
-**💸 Support the Developer**
+💖 **Support the Creator** 💖  
 
-If you find this bot useful, consider supporting development:
+Love using this bot? Help keep it running!  
 
-• UPI: `siam@ybl`  
-• PayPal: _Coming Soon_
+💸 **Donate via**:  
+• **UPI**: siam@ybl  
+• **PayPal**: Coming soon!  
 
-Even a small amount is appreciated!
+🙌 Even a small contribution means a lot!  
+
+👇 Check out more or return to the menu! 🚪
 """
 
-    SEND_METADATA = "**📝 Send your custom metadata (Title, Artist, etc).
+    SEND_METADATA = """
+📝 **Manage Metadata for Your Media** 📝  
 
-ᴍᴀɴᴀɢɪɴɢ ᴍᴇᴛᴀᴅᴀᴛᴀ ғᴏʀ ʏᴏᴜʀ ᴠɪᴅᴇᴏs ᴀɴᴅ ғɪʟᴇs
+Enhance your files with custom metadata!  
 
-ᴠᴀʀɪᴏᴜꜱ ᴍᴇᴛᴀᴅᴀᴛᴀ:
+🔹 **Available Metadata**:  
+• **Title**: Set a descriptive title  
+• **Author**: Define the creator  
+• **Artist**: Specify the artist  
+• **Audio**: Add audio title  
+• **Subtitle**: Set subtitle title  
+• **Video**: Define video title  
 
-ᴛɪᴛʟᴇ: Descriptive title of the media.
+🔧 **Commands**:  
+• `/metadata` - Enable/disable metadata  
+• `/settitle` - Set custom title (e.g., `/settitle My Video`)  
+• `/setauthor` - Set author  
+• `/setartist` - Set artist  
+• `/setaudio` - Set audio title  
+• `/setsubtitle` - Set subtitle title  
+• `/setvideo` - Set video title  
 
-ᴀᴜᴛʜᴏʀ: The creator or owner of the media.
+💡 **Example**: `/settitle Awesome Movie`  
 
-ᴀʀᴛɪꜱᴛ: The artist associated with the media.
+🚀 Use these to make your media stand out!  
+"""
 
-ᴀᴜᴅɪᴏ: Title or description of audio content.
+    PREFIX = """
+✍️ **Set a Custom Prefix** ✍️  
 
-ꜱᴜʙᴛɪᴛʟᴇ: Title of subtitle content.
+Add a prefix to your filenames for better organization!  
 
-ᴠɪᴅᴇᴏ: Title or description of video content.
+🔹 **Commands**:  
+• `/set_prefix` - Set a custom prefix (e.g., `/set_prefix [Siam Bot]`)  
+• `/del_prefix` - Remove the prefix  
+• `/see_prefix` - View your current prefix  
 
+💡 **Example**: `/set_prefix [Siam Bot]`  
 
-ᴄᴏᴍᴍᴀɴᴅꜱ ᴛᴏ ᴛᴜʀɴ ᴏɴ ᴏғғ ᴍᴇᴛᴀᴅᴀᴛᴀ:
-➜ /metadata: Turn on or off metadata.
+👉 Try it now! 🚀
+"""
 
-ᴄᴏᴍᴍᴀɴᴅꜱ ᴛᴏ ꜱᴇᴛ ᴍᴇᴛᴀᴅᴀᴛᴀ:
+    SUFFIX = """
+✍️ **Set a Custom Suffix** ✍️  
 
-➜ /settitle: Set a custom title of media.
-➜ /setauthor: Set the author.
-➜ /setartist: Set the artist.
-➜ /setaudio: Set audio title.
-➜ /setsubtitle: Set subtitle title.
-➜ /setvideo: Set video title.
+Add a suffix to your filenames for a unique touch!  
 
-ᴇxᴀᴍᴘʟᴇ: /settitle Your Title Here
+🔹 **Commands**:  
+• `/set_suffix` - Set a custom suffix (e.g., `/set_suffix [Siam Maker]`)  
+• `/del_suffix` - Remove the suffix  
+• `/see_suffix` - View your current suffix  
 
-ᴜꜱᴇ ᴛʜᴇꜱᴇ ᴄᴏᴍᴍᴀɴᴅꜱ ᴛᴏ ᴇɴʀɪᴄʜ ʏᴏᴜʀ ᴍᴇᴅɪᴀ ᴡɪᴛʜ ᴀᴅᴅɪᴛɪᴏɴᴀʟ ᴍᴇᴛᴀᴅᴀᴛᴀ ɪɴꜰᴏʀᴍᴀᴛɪᴏɴ!**"
-    PREFIX = "**✍ Send a prefix to add before filename.
+💡 **Example**: `/set_suffix [Siam Maker]`  
 
-ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ᴘʀᴇғɪx
-            
-➜ /set_prefix: ᴛᴏ ꜱᴇᴛ ᴀ ᴄᴜꜱᴛᴏᴍ ᴘʀᴇғɪx.
-➜ /del_prefix: ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴘʀᴇғɪx.
-➜ /see_prefix: ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴘʀᴇғɪx.
+👉 Get started! 🚀
+"""
 
-ᴇxᴀᴍᴘʟᴇ: /set_prefix [Siam Botko]**"
-    SUFFIX = "**✍ Send a suffix to add after filename.
-
-ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ꜱᴜғғɪx
-
-➜ /set_suffix: ᴛᴏ ꜱᴇᴛ ᴀ ᴄᴜꜱᴛᴏᴍ ꜱᴜғғɪx.
-➜ /del_suffix: ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ꜱᴜғғɪx.
-➜ /see_suffix: ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ꜱᴜғғɪx.
-
-ᴇxᴀᴍᴘʟᴇ: /set_suffix [Siam Maker]**"
     CAPTION_TXT = """
-**🖋 Send a custom caption (use {filename} to include file name).
+🖋 **Set a Custom Caption** 🖋  
 
-ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ ᴀɴᴅ ᴍᴇᴅɪᴀ ᴛʏᴘᴇ
-ᴠᴀʀɪᴀʙʟᴇꜱ :         
-ꜱɪᴢᴇ: {ꜰɪʟᴇꜱɪᴢᴇ}
-ᴅᴜʀᴀᴛɪᴏɴ: {duration}
-ꜰɪʟᴇɴᴀᴍᴇ: {ꜰɪʟᴇɴᴀᴍᴇ}
-➜ /set_caption: ᴛᴏ ꜱᴇᴛ ᴀ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.
-➜ /see_caption: ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.
-➜ /del_caption: ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.
+Personalize your file captions with dynamic variables!  
 
-ᴇxᴀᴍᴘʟᴇ: /setcaption ꜰɪʟᴇ ɴᴀᴍᴇ: {ꜰɪʟᴇɴᴀᴍᴇ}**
+🔹 **Variables**:  
+• `{filename}` - File name  
+• `{filesize}` - File size  
+• `{duration}` - Media duration  
+
+🔹 **Commands**:  
+• `/set_caption` - Set a custom caption (e.g., `/setcaption File: {filename}`)  
+• `/see_caption` - View your current caption  
+• `/del_caption` - Remove the caption  
+
+💡 **Example**: `/setcaption File: {filename} | Size: {filesize}`  
+
+👉 Customize now! 🚀
 """
+
     THUMBNAIL_TXT = """
-**🖼 Send an image to set as custom thumbnail.
+🖼 **Set a Custom Thumbnail** 🖼  
 
-ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ᴛʜᴜᴍʙɴᴀɪʟ
+Make your files visually appealing with a custom thumbnail!  
 
-➜ /start: ꜱᴇɴᴅ ᴀɴʏ ᴘʜᴏᴛᴏ ᴛᴏ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ꜱᴇᴛ ɪᴛ ᴀꜱ ᴀ ᴛʜᴜᴍʙɴᴀɪʟ..
-➜ /del_thumb: ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴏʟᴅ ᴛʜᴜᴍʙɴᴀɪʟ.
-➜ /view_thumb: ᴜꜱᴇ ᴛʜɪꜱ ᴄᴏᴍᴍᴀɴᴅ ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜʀʀᴇɴᴛ ᴛʜᴜᴍʙɴᴀɪʟ.
+🔹 **How to Set**:  
+• Send any **photo** to automatically set it as a thumbnail  
+• `/del_thumb` - Delete your current thumbnail  
+• `/view_thumb` - View your current thumbnail  
 
-ɴᴏᴛᴇ: ɪꜰ ɴᴏ ᴛʜᴜᴍʙɴᴀɪʟ ꜱᴀᴠᴇᴅ ɪɴ ʙᴏᴛ ᴛʜᴇɴ, ɪᴛ ᴡɪʟʟ ᴜꜱᴇ ᴛʜᴜᴍʙɴᴀɪʟ ᴏꜰ ᴛʜᴇ ᴏʀɪɢɪɴɪᴀʟ ꜰɪʟᴇ ᴛᴏ ꜱᴇᴛ ɪɴ ʀᴇɴᴀᴍᴇᴅ ꜰɪʟᴇ**
+📌 **Note**: If no thumbnail is set, the bot uses the file’s original thumbnail.  
+
+👉 Upload a photo to start! 🚀
 """
 
-    WATERMARK_TXT = "**✒️ Send watermark text to be added to your thumbnails.
+    WATERMARK_TXT = """
+✒️ **Add a Watermark to Thumbnails** ✒️  
 
-〄 Watermark Feature
+Protect your content with a custom text watermark!  
 
-➤ ᴛᴏ ᴀᴅᴅ ᴀ ᴄᴜꜱᴛᴏᴍ ᴛᴇxᴛ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴏ ʏᴏᴜʀ ᴛʜᴜᴍʙɴᴀɪʟꜱ...
+🔹 **Commands**:  
+• `/set_watermark YourText` - Set watermark text (e.g., `/set_watermark My Channel`)  
+• `/set_watermark_textsize 36` - Set font size (10-100)  
+• `/preview_watermark` - Preview watermark on a blank thumbnail  
+• `/del_watermark` - Remove watermark and reset font size  
 
+📌 **Note**: Watermarks are automatically applied to all future thumbnails (with logo).  
 
----
+💡 **Example**: `/set_watermark My Channel`  
 
-➜ /set_watermark YourTextHere
-ꜱᴇᴛ ᴀ ᴄᴜꜱᴛᴏᴍ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ.
-Example: /set_watermark My Channel Name
-
-➜ /set_watermark_textsize 36
-ꜱᴇᴛ ᴛʜᴇ ꜰᴏɴᴛ ꜱɪᴢᴇ ᴏꜰ ᴛʜᴇ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ (ʀᴀɴɢᴇ: 10 - 100)
-
-➜ /preview_watermark
-ᴘʀᴇᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜʀʀᴇɴᴛ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ ᴏɴ ᴀ ʙʟᴀɴᴋ ᴛʜᴜᴍʙɴᴀɪʟ
-
-➜ /del_watermark
-ʀᴇᴍᴏᴠᴇ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ ᴀɴᴅ ʀᴇꜱᴇᴛ ꜰᴏɴᴛ ꜱɪᴢᴇ
-
-
----
-
-ɴᴏᴛᴇ: ᴏɴᴄᴇ ꜱᴇᴛ, ᴛʜᴇ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀᴘᴘʟɪᴇᴅ ᴛᴏ ᴀʟʟ ʏᴏᴜʀ ꜰᴜᴛᴜʀᴇ ᴛʜᴜᴍʙɴᴀɪʟꜱ (ᴀʟᴏɴɢ ᴡɪᴛʜ ᴛʜᴇ ʟᴏɢᴏ)**"
-
+👉 Try it out! 🚀
+"""
 
 @Client.on_message(filters.private & filters.command("start"))
 async def start(client, message):
     user = message.from_user
     await jishubotz.add_user(client, message)
 
-    keyboard = InlineKeyboardMarkup([
-        [InlineKeyboardButton("📚 About", callback_data="about"),
-         InlineKeyboardButton("🛠 Help", callback_data="help")],
-        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/movie_channel8")]
-    ])
+    keyboard = InlineKeyboardMarkup([  
+        [InlineKeyboardButton("📚 About", callback_data="about"),  
+         InlineKeyboardButton("🛠 Help", callback_data="help")],  
+        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/movie_channel8")]  
+    ])  
 
-    try:
-        if Config.START_PIC:
-            await message.reply_photo(
-                photo=Config.START_PIC,
-                caption=Txt.START_TXT.format(user.mention),
-                reply_markup=keyboard
-            )
-        else:
-            await message.reply_text(
-                text=Txt.START_TXT.format(user.mention),
-                reply_markup=keyboard,
-                disable_web_page_preview=True
-            )
-    except Exception as e:
+    try:  
+        if Config.START_PIC:  
+            await message.reply_photo(  
+                photo=Config.START_PIC,  
+                caption=Txt.START_TXT.format(user.mention),  
+                reply_markup=keyboard  
+            )  
+        else:  
+            await message.reply_text(  
+                text=Txt.START_TXT.format(user.mention),  
+                reply_markup=keyboard,  
+                disable_web_page_preview=True  
+            )  
+    except Exception as e:  
         await message.reply_text(f"⚠️ Error in /start:\n`{e}`")
-
 
 @Client.on_callback_query()
 async def callback(client, query: CallbackQuery):
     data = query.data
     user = query.from_user
 
-    if data == "start":
-        await query.message.edit_text(
-            text=Txt.START_TXT.format(user.mention),
-            disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("📚 About", callback_data="about"),
-                 InlineKeyboardButton("🛠 Help", callback_data="help")],
-                [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/movie_channel8")]
-            ])
-        )
+    if data == "start":  
+        await query.message.edit_text(  
+            text=Txt.START_TXT.format(user.mention),  
+            disable_web_page_preview=True,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("📚 About", callback_data="about"),  
+                 InlineKeyboardButton("🛠 Help", callback_data="help")],  
+                [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/movie_channel8")]  
+            ])  
+        )  
 
-    elif data == "help":
-        await query.message.edit_text(
-            text=Txt.HELP_TXT,
-            disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("📝 Metadata", callback_data="meta")],
-                [InlineKeyboardButton("📌 Prefix", callback_data="prefix"),
-                 InlineKeyboardButton("📍 Suffix", callback_data="suffix")],
-                [InlineKeyboardButton("🖋 Caption", callback_data="caption"),
-                 InlineKeyboardButton("🖼 Thumbnail", callback_data="thumbnail")],
-                [InlineKeyboardButton("✒️ Watermark", callback_data="watermark")],
-                [InlineKeyboardButton("🏠 Home", callback_data="start")]
-            ])
-        )
+    elif data == "help":  
+        await query.message.edit_text(  
+            text=Txt.HELP_TXT,  
+            disable_web_page_preview=True,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("📝 Metadata", callback_data="meta")],  
+                [InlineKeyboardButton("📌 Prefix", callback_data="prefix"),  
+                 InlineKeyboardButton("📍 Suffix", callback_data="suffix")],  
+                [InlineKeyboardButton("🖋 Caption", callback_data="caption"),  
+                 InlineKeyboardButton("🖼 Thumbnail", callback_data="thumbnail")],  
+                [InlineKeyboardButton("✒️ Watermark", callback_data="watermark")],  
+                [InlineKeyboardButton("🏠 Home", callback_data="start")]  
+            ])  
+        )  
 
-    elif data == "about":
-        await query.message.edit_text(
-            text=Txt.ABOUT_TXT,
-            disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔗 Repo", url="https://github.com/&"),
-                 InlineKeyboardButton("💸 Donate", callback_data="donate")],
-                [InlineKeyboardButton("🏠 Home", callback_data="start")]
-            ])
-        )
+    elif data == "about":  
+        await query.message.edit_text(  
+            text=Txt.ABOUT_TXT,  
+            disable_web_page_preview=True,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("🔗 Repo", url="https://github.com/&"),  
+                 InlineKeyboardButton("💸 Donate", callback_data="donate")],  
+                [InlineKeyboardButton("🏠 Home", callback_data="start")]  
+            ])  
+        )  
 
-    elif data == "donate":
-        await query.message.edit_text(
-            text=Txt.DONATE_TXT,
-            disable_web_page_preview=True,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🤖 More Bots", url="https://t.me/movie_channel8/8")],
-                [InlineKeyboardButton("🔙 Back", callback_data="about"),
-                 InlineKeyboardButton("❌ Close", callback_data="close")]
-            ])
-        )
+    elif data == "donate":  
+        await query.message.edit_text(  
+            text=Txt.DONATE_TXT,  
+            disable_web_page_preview=True,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("🤖 More Bots", url="https://t.me/movie_channel8/8")],  
+                [InlineKeyboardButton("🔙 Back", callback_data="about"),  
+                 InlineKeyboardButton("❌ Close", callback_data="close")]  
+            ])  
+        )  
 
-    elif data == "meta":
-        await query.message.edit_text(
-            text=Txt.SEND_METADATA,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔙 Back", callback_data="help"),
-                 InlineKeyboardButton("❌ Close", callback_data="close")]
-            ])
-        )
+    elif data == "meta":  
+        await query.message.edit_text(  
+            text=Txt.SEND_METADATA,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("🔙 Back", callback_data="help"),  
+                 InlineKeyboardButton("❌ Close", callback_data="close")]  
+            ])  
+        )  
 
-    elif data == "prefix":
-        await query.message.edit_text(
-            text=Txt.PREFIX,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔙 Back", callback_data="help"),
-                 InlineKeyboardButton("❌ Close", callback_data="close")]
-            ])
-        )
+    elif data == "prefix":  
+        await query.message.edit_text(  
+            text=Txt.PREFIX,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("🔙 Back", callback_data="help"),  
+                 InlineKeyboardButton("❌ Close", callback_data="close")]  
+            ])  
+        )  
 
-    elif data == "suffix":
-        await query.message.edit_text(
-            text=Txt.SUFFIX,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔙 Back", callback_data="help"),
-                 InlineKeyboardButton("❌ Close", callback_data="close")]
-            ])
-        )
+    elif data == "suffix":  
+        await query.message.edit_text(  
+            text=Txt.SUFFIX,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("🔙 Back", callback_data="help"),  
+                 InlineKeyboardButton("❌ Close", callback_data="close")]  
+            ])  
+        )  
 
-    elif data == "caption":
-        await query.message.edit_text(
-            text=Txt.CAPTION_TXT,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔙 Back", callback_data="help"),
-                 InlineKeyboardButton("❌ Close", callback_data="close")]
-            ])
-        )
+    elif data == "caption":  
+        await query.message.edit_text(  
+            text=Txt.CAPTION_TXT,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("🔙 Back", callback_data="help"),  
+                 InlineKeyboardButton("❌ Close", callback_data="close")]  
+            ])  
+        )  
 
-    elif data == "thumbnail":
-        await query.message.edit_text(
-            text=Txt.THUMBNAIL_TXT,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔙 Back", callback_data="help"),
-                 InlineKeyboardButton("❌ Close", callback_data="close")]
-            ])
-        )
+    elif data == "thumbnail":  
+        await query.message.edit_text(  
+            text=Txt.THUMBNAIL_TXT,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("🔙 Back", callback_data="help"),  
+                 InlineKeyboardButton("❌ Close", callback_data="close")]  
+            ])  
+        )  
 
-    elif data == "watermark":
-        await query.message.edit_text(
-            text=Txt.WATERMARK_TXT,
-            reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔙 Back", callback_data="help"),
-                 InlineKeyboardButton("❌ Close", callback_data="close")]
-            ])
-        )
+    elif data == "watermark":  
+        await query.message.edit_text(  
+            text=Txt.WATERMARK_TXT,  
+            reply_markup=InlineKeyboardMarkup([  
+                [InlineKeyboardButton("🔙 Back", callback_data="help"),  
+                 InlineKeyboardButton("❌ Close", callback_data="close")]  
+            ])  
+        )  
 
-    elif data == "close":
-        try:
-            await query.message.delete()
-        except:
+    elif data == "close":  
+        try:  
+            await query.message.delete()  
+        except:  
             pass
-
 
 @Client.on_message(filters.private & filters.command("set_watermark"))
 async def save_watermark(client, message: Message):
     if len(message.command) < 2:
-        return await message.reply_text("**Usage:** `/set_watermark YourTextHere`")
+        return await message.reply_text("❌ **Usage**: `/set_watermark YourTextHere`")
     text = message.text.split(None, 1)[1]
     await set_watermark(message.from_user.id, text)
-    await message.reply_text(f"✅ Watermark set to: `{text}`")
-
+    await message.reply_text(f"✅ **Watermark set to**: `{text}`")
 
 @Client.on_message(filters.private & filters.command("del_watermark"))
 async def remove_watermark(client, message: Message):
     await del_watermark(message.from_user.id)
-    await message.reply_text("🗑️ Watermark removed.")
+    await message.reply_text("🗑️ **Watermark removed successfully**.")

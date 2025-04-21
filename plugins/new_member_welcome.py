@@ -1,6 +1,5 @@
 from pyrogram import Client, filters
 from pyrogram.types import Message
-import io
 
 @Client.on_message(filters.new_chat_members)
 async def welcome_new_member(client, message: Message):
@@ -13,10 +12,11 @@ async def welcome_new_member(client, message: Message):
         user_id = member.id
 
         try:
-            photo = await client.download_media(await client.get_profile_photos(user_id, limit=1)[0])
-            with open(photo, "rb") as file:
+            photos = await client.get_profile_photos(user_id, limit=1)
+            if photos.total_count > 0:
+                photo_file = await client.download_media(photos[0])
                 await message.reply_photo(
-                    photo=file,
+                    photo=photo_file,
                     caption=(
                         f"স্বাগতম {name}!\n\n"
                         f"➡️ ইউজারনেম: {username}\n"
@@ -24,7 +24,9 @@ async def welcome_new_member(client, message: Message):
                         "আশা করি তুমি আমাদের সাথে ভালো সময় কাটাবে!"
                     )
                 )
-        except:
+            else:
+                raise Exception("No photo")
+        except Exception as e:
             await message.reply_text(
                 f"স্বাগতম {name}!\n\n"
                 f"➡️ ইউজারনেম: {username}\n"

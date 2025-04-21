@@ -4,27 +4,26 @@ from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQ
 from helper.database import jishubotz, set_watermark, del_watermark
 from config import Config
 
-
 class Txt:
     START_TXT = """
-**Hey {0}**,  
+**Hello {0}**,  
 Welcome to **Siam's Renamer Bot**!
 
-This bot allows you to:
-• Rename files  
+With this bot, you can:
+• Rename any file  
 • Convert video to file  
 • Set custom thumbnail, caption, prefix & suffix  
 
-**⚠️ Note:**  
-Any adult/porn content = Permanent ban!
+**⚠️ Warning:**  
+Pornographic or adult content will result in permanent ban!
 """
 
     HELP_TXT = """
 **How to Use:**
 
 1. Send any file  
-2. Bot asks for a new name  
-3. You get the renamed file  
+2. Bot will ask for new name  
+3. Get your renamed file instantly  
 
 **Features:**  
 • `/set_caption` - Set custom caption  
@@ -47,28 +46,25 @@ Any adult/porn content = Permanent ban!
     DONATE_TXT = """
 **Support the Developer:**
 
-If you love this bot, support me:
+If you like this bot, consider supporting:
 
 • UPI: `siam@ybl`  
 • PayPal: _Coming Soon_
 """
 
-    SEND_METADATA = "**Send metadata (like Title, Artist, etc.)**"
-    PREFIX = "**Send a prefix to add before filename.**"
-    SUFFIX = "**Send a suffix to add after filename.**"
-    CAPTION_TXT = "**Send a custom caption (use {filename} for file name).**"
+    SEND_METADATA = "**Send metadata (e.g., Title, Artist, etc.).**"
+    PREFIX = "**Send a prefix to add before the filename.**"
+    SUFFIX = "**Send a suffix to add after the filename.**"
+    CAPTION_TXT = "**Send a custom caption (use {filename} to include filename).**"
     THUMBNAIL_TXT = "**Send an image to set as thumbnail.**"
 
 
 @Client.on_message(filters.private & filters.command("start"))
-async def start(client, message):
+async def start(client, message: Message):
     user = message.from_user
     await jishubotz.add_user(client, message)
 
-    # Show loading sticker
-    loading = await message.reply_sticker("CAACAgUAAxkBAAEW5F1mTK5v8Z0V1Dc7a2n5Vp0TlnAHYgAC9wIAAm4N2VcR6AKoO2t4PzAE")
-    await asyncio.sleep(1.5)
-    await loading.delete()
+    loading = await message.reply_sticker("CAACAgUAAxkBAAEBzUBlZ8cwIwhDmqXtfKXkTrl93JXZBgACswEAAubBiFYm2s_pjJ04BCQE")  # Loading sticker
 
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("📚 About", callback_data="about"),
@@ -78,29 +74,33 @@ async def start(client, message):
 
     try:
         if Config.START_PIC:
+            await loading.delete()
             await message.reply_photo(
                 photo=Config.START_PIC,
                 caption=Txt.START_TXT.format(user.mention),
                 reply_markup=keyboard
             )
         else:
+            await loading.delete()
             await message.reply_text(
                 text=Txt.START_TXT.format(user.mention),
                 reply_markup=keyboard,
                 disable_web_page_preview=True
             )
     except Exception as e:
+        await loading.delete()
         await message.reply_text(f"⚠️ Error in /start:\n`{e}`")
 
-    # Notify admin
+    # Admin log
+    ADMIN_ID = int(Config.OWNER_ID)
     try:
         await client.send_message(
-            int(Config.OWNER_ID),
-            f"✅ New user started the bot:\n\n"
-            f"👤 Name: {user.first_name}\n"
-            f"🔗 Username: @{user.username or 'N/A'}\n"
-            f"🆔 ID: `{user.id}`\n"
-            f"🔗 Profile: [Click](tg://user?id={user.id})"
+            ADMIN_ID,
+            f"New user started the bot:\n\n"
+            f"Name: {user.first_name}\n"
+            f"Username: @{user.username if user.username else 'N/A'}\n"
+            f"ID: `{user.id}`\n"
+            f"Profile: tg://user?id={user.id}"
         )
     except Exception as e:
         print(f"[ERROR] Couldn’t notify admin: {e}")

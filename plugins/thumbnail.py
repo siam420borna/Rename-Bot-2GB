@@ -148,17 +148,3 @@ async def add_thumbnail(client, message):
 
 
 
-# Example DB: key-value storage like MongoDB or SQLite
-
-async def set_watermark_size(user_id, size):
-    # Update or delete font size
-    if size:
-        # Save in DB (example: await db.update({"_id": user_id}, {"$set": {"font_size": size}}))
-        pass
-    else:
-        # Remove (example: await db.update({"_id": user_id}, {"$unset": {"font_size": ""}}))
-        pass
-
-async def get_watermark_size(user_id):
-    # Fetch from DB (example: user = await db.find_one({"_id": user_id}); return user.get("font_size"))
-    return 36  # Default fallback

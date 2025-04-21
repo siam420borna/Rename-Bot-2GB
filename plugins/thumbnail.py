@@ -113,7 +113,12 @@ async def add_thumbnail(client, message):
 
         main_image.paste(logo, (w - logo_size - 15, 15), logo)
 
+        # Only Premium users get watermark text
+        is_prem = await jishubotz.is_premium(message.from_user.id)
         watermark_text = await get_watermark(message.from_user.id)
+        if not is_prem:
+            watermark_text = None
+
         if watermark_text:
             draw = ImageDraw.Draw(main_image)
             font_size = await get_watermark_size(message.from_user.id)

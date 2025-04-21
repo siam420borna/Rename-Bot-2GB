@@ -62,11 +62,16 @@ Even a small amount is appreciated!
     SUFFIX = "**✍ Send a suffix to add after filename.**"
     CAPTION_TXT = "**🖋 Send a custom caption (use {filename} to include file name).
 
-Eg: /set_caption {filename}
+ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ ᴀɴᴅ ᴍᴇᴅɪᴀ ᴛʏᴘᴇ
+ᴠᴀʀɪᴀʙʟᴇꜱ :         
+ꜱɪᴢᴇ: {ꜰɪʟᴇꜱɪᴢᴇ}
+ᴅᴜʀᴀᴛɪᴏɴ: {duration}
+ꜰɪʟᴇɴᴀᴍᴇ: {ꜰɪʟᴇɴᴀᴍᴇ}
+➜ /set_caption: ᴛᴏ ꜱᴇᴛ ᴀ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.
+➜ /see_caption: ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.
+➜ /del_caption: ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴄᴀᴘᴛɪᴏɴ.
 
-💾 Sɪᴢᴇ: {filesize}
-
-⏰ Dᴜʀᴀᴛɪᴏɴ: {duration}**"
+ᴇxᴀᴍᴘʟᴇ: /setcaption ꜰɪʟᴇ ɴᴀᴍᴇ: {ꜰɪʟᴇɴᴀᴍᴇ}**"
     THUMBNAIL_TXT = "**🖼 Send an image to set as custom thumbnail.**"
 
 

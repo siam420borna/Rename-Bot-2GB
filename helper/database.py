@@ -1,182 +1,153 @@
 import os
 import asyncio
 import motor.motor_asyncio
-from pymongo import MongoClient
 from config import Config
 from .utils import send_log
 
 class Database:
-    """
-    MongoDB handler for user data, thumbnail, and ban features.
-    """
+    def __init__(self, uri, db_name):
+        self.client = motor.motor_asyncio.AsyncIOMotorClient(uri)
+        self.db = self.client[db_name]
+        self.users = self.db.users
+        self.banned = self.db.banned
 
-    def __init__(self, uri, database_name):
-        self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)
-        self.jishubotz = self._client[database_name]
-        self.col = self.jishubotz.user
-        self.bannedList = self.jishubotz.bannedList
-
-    def new_user(self, id):
+    def new_user(self, user_id):
         return {
-            '_id': int(id),
-            'file_id': None,
-            'batch_mode': False,
-            'caption': None,
-            'prefix': None,
-            'suffix': None,
-            'metadata': False,
-            'metadata_code': 'By :- @TechifyBots'
+            "_id": int(user_id),
+            "file_id": None,
+            "thumb_size": None,
+            "caption": None,
+            "prefix": None,
+            "suffix": None,
+            "metadata": False,
+            "metadata_code": "By :- @TechifyBots",
+            "watermark": None,
+            "font_size": 36,
+            "premium": False
         }
 
-    # User Management
     async def add_user(self, bot, message):
         user = message.from_user
-        if not await self.is_user_exist(user.id):
-            await self.col.insert_one(self.new_user(user.id))
+        if not await self.users.find_one({"_id": user.id}):
+            await self.users.insert_one(self.new_user(user.id))
             await send_log(bot, user)
 
-    async def is_user_exist(self, id):
-        return await self.col.find_one({'_id': int(id)}) is not None
+    async def is_user_exist(self, user_id):
+        return await self.users.find_one({"_id": int(user_id)}) is not None
+
+    async def get_user(self, user_id):
+        return await self.users.find_one({"_id": int(user_id)})
 
     async def total_users_count(self):
-        return await self.col.count_documents({})
+        return await self.users.count_documents({})
 
     async def get_all_users(self):
-        return self.col.find({})
+        return self.users.find({})
 
     async def delete_user(self, user_id):
-        await self.col.delete_many({'_id': int(user_id)})
+        await self.users.delete_one({"_id": int(user_id)})
 
     # Thumbnail
-    async def set_thumbnail(self, id, file_id):
-        await self.col.update_one({'_id': int(id)}, {'$set': {'file_id': file_id}})
+    async def set_thumbnail(self, user_id, file_id):
+        await self.users.update_one({"_id": user_id}, {"$set": {"file_id": file_id}})
 
-    async def get_thumbnail(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('file_id') if user else None
+    async def get_thumbnail(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("file_id") if user else None
 
-    async def set_thumb_size(self, id, size):
-        await self.col.update_one({'_id': int(id)}, {'$set': {'thumb_size': size}})
+    async def set_thumb_size(self, user_id, size):
+        await self.users.update_one({"_id": user_id}, {"$set": {"thumb_size": size}})
 
-    async def get_thumb_size(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('thumb_size') if user else None
+    async def get_thumb_size(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("thumb_size") if user else None
 
     # Caption / Prefix / Suffix
-    async def set_caption(self, id, caption):
-        await self.col.update_one({'_id': int(id)}, {'$set': {'caption': caption}})
+    async def set_caption(self, user_id, caption):
+        await self.users.update_one({"_id": user_id}, {"$set": {"caption": caption}})
 
-    async def get_caption(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('caption') if user else None
+    async def get_caption(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("caption") if user else None
 
-    async def set_prefix(self, id, prefix):
-        await self.col.update_one({'_id': int(id)}, {'$set': {'prefix': prefix}})
+    async def set_prefix(self, user_id, prefix):
+        await self.users.update_one({"_id": user_id}, {"$set": {"prefix": prefix}})
 
-    async def get_prefix(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('prefix') if user else None
+    async def get_prefix(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("prefix") if user else None
 
-    async def set_suffix(self, id, suffix):
-        await self.col.update_one({'_id': int(id)}, {'$set': {'suffix': suffix}})
+    async def set_suffix(self, user_id, suffix):
+        await self.users.update_one({"_id": user_id}, {"$set": {"suffix": suffix}})
 
-    async def get_suffix(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('suffix') if user else None
+    async def get_suffix(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("suffix") if user else None
 
     # Metadata
-    async def set_metadata(self, id, bool_meta):
-        await self.col.update_one({'_id': int(id)}, {'$set': {'metadata': bool_meta}})
+    async def set_metadata(self, user_id, status):
+        await self.users.update_one({"_id": user_id}, {"$set": {"metadata": status}})
 
-    async def get_metadata(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('metadata') if user else None
+    async def get_metadata(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("metadata") if user else None
 
-    async def set_metadata_code(self, id, metadata_code):
-        await self.col.update_one({'_id': int(id)}, {'$set': {'metadata_code': metadata_code}})
+    async def set_metadata_code(self, user_id, code):
+        await self.users.update_one({"_id": user_id}, {"$set": {"metadata_code": code}})
 
-    async def get_metadata_code(self, id):
-        user = await self.col.find_one({'_id': int(id)})
-        return user.get('metadata_code') if user else None
+    async def get_metadata_code(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("metadata_code") if user else None
 
-    # Ban Control
+    # Watermark Text & Font Size
+    async def set_watermark(self, user_id, text):
+        await self.users.update_one({"_id": user_id}, {"$set": {"watermark": text}})
+
+    async def get_watermark(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("watermark") if user else None
+
+    async def del_watermark(self, user_id):
+        await self.users.update_one({"_id": user_id}, {"$unset": {"watermark": ""}})
+
+    async def set_watermark_size(self, user_id, size):
+        if size:
+            await self.users.update_one({"_id": user_id}, {"$set": {"font_size": size}})
+        else:
+            await self.users.update_one({"_id": user_id}, {"$unset": {"font_size": ""}})
+
+    async def get_watermark_size(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("font_size", 36)
+
+    # Premium
+    async def add_premium(self, user_id):
+        await self.users.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
+
+    async def remove_premium(self, user_id):
+        await self.users.update_one({"_id": user_id}, {"$unset": {"premium": ""}})
+
+    async def is_premium(self, user_id):
+        user = await self.get_user(user_id)
+        return user.get("premium", False) if user else False
+
+    # Ban System
     async def ban_user(self, user_id):
-        exists = await self.bannedList.find_one({'banId': int(user_id)})
-        if exists:
+        if await self.banned.find_one({"banId": user_id}):
             return False
-        await self.bannedList.insert_one({'banId': int(user_id)})
+        await self.banned.insert_one({"banId": user_id})
         return True
 
     async def is_banned(self, user_id):
-        return await self.bannedList.find_one({'banId': int(user_id)}) is not None
+        return await self.banned.find_one({"banId": user_id}) is not None
 
-    async def is_unbanned(self, user_id):
-        result = await self.bannedList.find_one({'banId': int(user_id)})
+    async def unban_user(self, user_id):
+        result = await self.banned.find_one({"banId": user_id})
         if result:
-            await self.bannedList.delete_one({'banId': int(user_id)})
+            await self.banned.delete_one({"banId": user_id})
             return True
         return False
 
 
-# Instantiate the DB
-jishubotz = Database(Config.DB_URL, Config.DB_NAME)
-
-# db reference
-db = jishubotz.jishubotz
-
-# Watermark functions
-async def set_watermark(user_id, text):
-    await db.user_data.update_one(
-        {"_id": user_id}, {"$set": {"watermark": text}}, upsert=True
-    )
-
-async def get_watermark(user_id):
-    user = await db.user_data.find_one({"_id": user_id})
-    return user.get("watermark") if user else None
-
-async def del_watermark(user_id):
-    await db.user_data.update_one({"_id": user_id}, {"$unset": {"watermark": ""}})
-
-
-
-async def get_user_by_id(user_id: int):
-    from .database import db  # যদি তোমার mongo client db নামে থাকে
-    return await db.users.find_one({"_id": user_id})
-
-
-# Example DB: key-value storage like MongoDB or SQLite
-
-async def set_watermark_size(user_id, size):
-    # Update or delete font size
-    if size:
-        # Save in DB (example: await db.update({"_id": user_id}, {"$set": {"font_size": size}}))
-        pass
-    else:
-        # Remove (example: await db.update({"_id": user_id}, {"$unset": {"font_size": ""}}))
-        pass
-
-async def get_watermark_size(user_id):
-    # Fetch from DB (example: user = await db.find_one({"_id": user_id}); return user.get("font_size"))
-    return 36  # Default fallback
-
-
-from motor.motor_asyncio import AsyncIOMotorClient
-
-client = AsyncIOMotorClient()
-db = client["your_db_name"]
-user_col = db["users"]
-
-class Database:
-    # ...
-
-    async def add_premium(self, user_id: int):
-        await user_col.update_one({"_id": user_id}, {"$set": {"premium": True}}, upsert=True)
-
-    async def remove_premium(self, user_id: int):
-        await user_col.update_one({"_id": user_id}, {"$unset": {"premium": ""}})
-
-    async def is_premium(self, user_id: int) -> bool:
-        user = await user_col.find_one({"_id": user_id})
-        return user and user.get("premium", False)
-
-jishubotz = Database()
+# Instantiate
+db = Database(Config.DB_URL, Config.DB_NAME)

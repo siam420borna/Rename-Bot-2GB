@@ -3,7 +3,7 @@ from pyrogram import Client, filters
 from pyrogram.types import Message
 from helper.database import db  # ei line correct
 
-ADMIN_ID = 123456789  # eta nijer Telegram ID diye replace kor
+ADMIN_ID = 7862181538  # eta nijer Telegram ID diye replace kor
 
 @Client.on_message(filters.private & filters.command("status"))
 async def status_handler(client, message: Message):

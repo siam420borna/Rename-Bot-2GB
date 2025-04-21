@@ -142,3 +142,19 @@ async def del_watermark(user_id):
 async def get_user_by_id(user_id: int):
     from .database import db  # যদি তোমার mongo client db নামে থাকে
     return await db.users.find_one({"_id": user_id})
+
+
+# Example DB: key-value storage like MongoDB or SQLite
+
+async def set_watermark_size(user_id, size):
+    # Update or delete font size
+    if size:
+        # Save in DB (example: await db.update({"_id": user_id}, {"$set": {"font_size": size}}))
+        pass
+    else:
+        # Remove (example: await db.update({"_id": user_id}, {"$unset": {"font_size": ""}}))
+        pass
+
+async def get_watermark_size(user_id):
+    # Fetch from DB (example: user = await db.find_one({"_id": user_id}); return user.get("font_size"))
+    return 36  # Default fallback

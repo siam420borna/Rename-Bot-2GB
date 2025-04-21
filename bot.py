@@ -96,6 +96,86 @@ class Bot(Client):
 
 
 
+
+
+#gpt
+
+
+import os
+from PIL import Image, ImageDraw, ImageFont
+from telegram import Update
+from telegram.ext import Updater, MessageHandler, Filters, CallbackContext
+import requests
+from io import BytesIO
+
+# Welcome card generator
+def generate_welcome_card(name, username, user_id, profile_url=None):
+    bg = Image.open("welcome_bg.jpg").convert("RGBA")
+    draw = ImageDraw.Draw(bg)
+
+    font_big = ImageFont.truetype("arial.ttf", 60)
+    font_small = ImageFont.truetype("arial.ttf", 36)
+
+    # Text draw
+    draw.text((50, 50), "WELCOME", font=font_big, fill="white")
+    draw.text((50, 150), f"NAME     : {name}", font=font_small, fill="white")
+    draw.text((50, 210), f"USERNAME : @{username}" if username else "USERNAME : None", font=font_small, fill="white")
+    draw.text((50, 270), f"USER ID  : {user_id}", font=font_small, fill="white")
+
+    # Profile pic
+    avatar_size = (200, 200)
+    if profile_url:
+        response = requests.get(profile_url)
+        avatar = Image.open(BytesIO(response.content)).resize(avatar_size)
+    else:
+        avatar = Image.open("default_avatar.png").resize(avatar_size)
+
+    bg.paste(avatar, (1000, 50))
+
+    output = BytesIO()
+    output.name = "welcome.png"
+    bg.save(output, "PNG")
+    output.seek(0)
+    return output
+
+# Main function
+def welcome(update: Update, context: CallbackContext):
+    for user in update.message.new_chat_members:
+        name = user.full_name
+        username = user.username or "None"
+        user_id = user.id
+
+        # Try to get profile pic URL
+        photos = context.bot.get_user_profile_photos(user.id)
+        profile_url = None
+        if photos.total_count > 0:
+            file = context.bot.get_file(photos.photos[0][0].file_id)
+            profile_url = file.file_path
+
+        # Generate image
+        img = generate_welcome_card(name, username, user_id, profile_url)
+
+        # Send image
+        context.bot.send_photo(
+            chat_id=update.effective_chat.id,
+            photo=img,
+            caption=f"স্বাগতম @{username}!"
+        )
+
+# Setup
+updater = Updater("8043487250:AAHi4LvR7TW-1RfRva1SWBacBnbCnHCFwcs", use_context=True)
+dp = updater.dispatcher
+dp.add_handler(MessageHandler(Filters.status_update.new_chat_members, welcome))
+
+updater.start_polling()
+updater.idle()
+
+
+
+
+
+
+
 # -----------------------------
 # Run the Bot
 # -----------------------------

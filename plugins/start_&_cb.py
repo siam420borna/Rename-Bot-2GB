@@ -57,9 +57,58 @@ If you find this bot useful, consider supporting development:
 Even a small amount is appreciated!
 """
 
-    SEND_METADATA = "**📝 Send your custom metadata (Title, Artist, etc).**"
-    PREFIX = "**✍ Send a prefix to add before filename.**"
-    SUFFIX = "**✍ Send a suffix to add after filename.**"
+    SEND_METADATA = "**📝 Send your custom metadata (Title, Artist, etc).
+
+ᴍᴀɴᴀɢɪɴɢ ᴍᴇᴛᴀᴅᴀᴛᴀ ғᴏʀ ʏᴏᴜʀ ᴠɪᴅᴇᴏs ᴀɴᴅ ғɪʟᴇs
+
+ᴠᴀʀɪᴏᴜꜱ ᴍᴇᴛᴀᴅᴀᴛᴀ:
+
+ᴛɪᴛʟᴇ: Descriptive title of the media.
+
+ᴀᴜᴛʜᴏʀ: The creator or owner of the media.
+
+ᴀʀᴛɪꜱᴛ: The artist associated with the media.
+
+ᴀᴜᴅɪᴏ: Title or description of audio content.
+
+ꜱᴜʙᴛɪᴛʟᴇ: Title of subtitle content.
+
+ᴠɪᴅᴇᴏ: Title or description of video content.
+
+
+ᴄᴏᴍᴍᴀɴᴅꜱ ᴛᴏ ᴛᴜʀɴ ᴏɴ ᴏғғ ᴍᴇᴛᴀᴅᴀᴛᴀ:
+➜ /metadata: Turn on or off metadata.
+
+ᴄᴏᴍᴍᴀɴᴅꜱ ᴛᴏ ꜱᴇᴛ ᴍᴇᴛᴀᴅᴀᴛᴀ:
+
+➜ /settitle: Set a custom title of media.
+➜ /setauthor: Set the author.
+➜ /setartist: Set the artist.
+➜ /setaudio: Set audio title.
+➜ /setsubtitle: Set subtitle title.
+➜ /setvideo: Set video title.
+
+ᴇxᴀᴍᴘʟᴇ: /settitle Your Title Here
+
+ᴜꜱᴇ ᴛʜᴇꜱᴇ ᴄᴏᴍᴍᴀɴᴅꜱ ᴛᴏ ᴇɴʀɪᴄʜ ʏᴏᴜʀ ᴍᴇᴅɪᴀ ᴡɪᴛʜ ᴀᴅᴅɪᴛɪᴏɴᴀʟ ᴍᴇᴛᴀᴅᴀᴛᴀ ɪɴꜰᴏʀᴍᴀᴛɪᴏɴ!**"
+    PREFIX = "**✍ Send a prefix to add before filename.
+
+ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ᴘʀᴇғɪx
+            
+➜ /set_prefix: ᴛᴏ ꜱᴇᴛ ᴀ ᴄᴜꜱᴛᴏᴍ ᴘʀᴇғɪx.
+➜ /del_prefix: ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴘʀᴇғɪx.
+➜ /see_prefix: ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ᴘʀᴇғɪx.
+
+ᴇxᴀᴍᴘʟᴇ: /set_prefix [Siam Botko]**"
+    SUFFIX = "**✍ Send a suffix to add after filename.
+
+ᴛᴏ ꜱᴇᴛ ᴄᴜꜱᴛᴏᴍ ꜱᴜғғɪx
+
+➜ /set_suffix: ᴛᴏ ꜱᴇᴛ ᴀ ᴄᴜꜱᴛᴏᴍ ꜱᴜғғɪx.
+➜ /del_suffix: ᴛᴏ ᴅᴇʟᴇᴛᴇ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ꜱᴜғғɪx.
+➜ /see_suffix: ᴛᴏ ᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜꜱᴛᴏᴍ ꜱᴜғғɪx.
+
+ᴇxᴀᴍᴘʟᴇ: /set_suffix [Siam Maker]**"
     CAPTION_TXT = """
 **🖋 Send a custom caption (use {filename} to include file name).
 

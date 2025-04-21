@@ -86,7 +86,32 @@ Even a small amount is appreciated!
 ɴᴏᴛᴇ: ɪꜰ ɴᴏ ᴛʜᴜᴍʙɴᴀɪʟ ꜱᴀᴠᴇᴅ ɪɴ ʙᴏᴛ ᴛʜᴇɴ, ɪᴛ ᴡɪʟʟ ᴜꜱᴇ ᴛʜᴜᴍʙɴᴀɪʟ ᴏꜰ ᴛʜᴇ ᴏʀɪɢɪɴɪᴀʟ ꜰɪʟᴇ ᴛᴏ ꜱᴇᴛ ɪɴ ʀᴇɴᴀᴍᴇᴅ ꜰɪʟᴇ**
 """
 
-    WATERMARK_TXT = "**✒️ Send watermark text to be added to your thumbnails.**"
+    WATERMARK_TXT = "**✒️ Send watermark text to be added to your thumbnails.
+
+〄 Watermark Feature
+
+➤ ᴛᴏ ᴀᴅᴅ ᴀ ᴄᴜꜱᴛᴏᴍ ᴛᴇxᴛ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴏ ʏᴏᴜʀ ᴛʜᴜᴍʙɴᴀɪʟꜱ...
+
+
+---
+
+➜ /set_watermark YourTextHere
+ꜱᴇᴛ ᴀ ᴄᴜꜱᴛᴏᴍ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ.
+Example: /set_watermark My Channel Name
+
+➜ /set_watermark_textsize 36
+ꜱᴇᴛ ᴛʜᴇ ꜰᴏɴᴛ ꜱɪᴢᴇ ᴏꜰ ᴛʜᴇ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ (ʀᴀɴɢᴇ: 10 - 100)
+
+➜ /preview_watermark
+ᴘʀᴇᴠɪᴇᴡ ʏᴏᴜʀ ᴄᴜʀʀᴇɴᴛ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ ᴏɴ ᴀ ʙʟᴀɴᴋ ᴛʜᴜᴍʙɴᴀɪʟ
+
+➜ /del_watermark
+ʀᴇᴍᴏᴠᴇ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ ᴀɴᴅ ʀᴇꜱᴇᴛ ꜰᴏɴᴛ ꜱɪᴢᴇ
+
+
+---
+
+ɴᴏᴛᴇ: ᴏɴᴄᴇ ꜱᴇᴛ, ᴛʜᴇ ᴡᴀᴛᴇʀᴍᴀʀᴋ ᴛᴇxᴛ ᴡɪʟʟ ʙᴇ ᴀᴜᴛᴏᴍᴀᴛɪᴄᴀʟʟʏ ᴀᴘᴘʟɪᴇᴅ ᴛᴏ ᴀʟʟ ʏᴏᴜʀ ꜰᴜᴛᴜʀᴇ ᴛʜᴜᴍʙɴᴀɪʟꜱ (ᴀʟᴏɴɢ ᴡɪᴛʜ ᴛʜᴇ ʟᴏɢᴏ)**"
 
 
 @Client.on_message(filters.private & filters.command("start"))

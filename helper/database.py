@@ -4,6 +4,7 @@ import motor.motor_asyncio
 from config import Config
 from .utils import send_log
 
+
 class Database:
     def __init__(self, uri, db_name):
         self.client = motor.motor_asyncio.AsyncIOMotorClient(uri)
@@ -40,6 +41,9 @@ class Database:
 
     async def total_users_count(self):
         return await self.users.count_documents({})
+
+    async def total_premium_users(self):
+        return await self.users.count_documents({"premium": True})
 
     async def get_all_users(self):
         return self.users.find({})

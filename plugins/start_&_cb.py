@@ -26,8 +26,7 @@ Adult content is strictly prohibited. Offenders will be **banned permanently**!
 3. You’ll get the renamed file with metadata
 
 **⚙ Features:**  
-• `/set_caption` - Set custom caption  
-• `/set_thumbnail` - Set custom thumbnail  
+• `/set_caption` - Set custom caption    
 • `/set_prefix` or `/set_suffix` - Customize filename  
 • `/set_watermark` - Add watermark text on video thumbnail  
 • `/del_watermark` - Remove watermark
@@ -42,7 +41,7 @@ Use the buttons below for more info.
 • **Language:** Python3  
 • **Library:** Pyrogram  
 • **Hosted On:** Railway  
-• **Creator:** [Siam (TechifyRahul)](https://t.me/TechifyRahul)
+• **Creator:** [Siam (Boss)](https://t.me/movie_channel8)
 
 This bot is completely free and open source.
 """
@@ -73,7 +72,7 @@ async def start(client, message):
     keyboard = InlineKeyboardMarkup([
         [InlineKeyboardButton("📚 About", callback_data="about"),
          InlineKeyboardButton("🛠 Help", callback_data="help")],
-        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/TechifyRahul")]
+        [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/movie_channel8")]
     ])
 
     try:
@@ -105,7 +104,7 @@ async def callback(client, query: CallbackQuery):
             reply_markup=InlineKeyboardMarkup([
                 [InlineKeyboardButton("📚 About", callback_data="about"),
                  InlineKeyboardButton("🛠 Help", callback_data="help")],
-                [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/TechifyRahul")]
+                [InlineKeyboardButton("👨‍💻 Developer", url="https://t.me/movie_channel8")]
             ])
         )
 
@@ -128,7 +127,7 @@ async def callback(client, query: CallbackQuery):
             text=Txt.ABOUT_TXT,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🔗 Repo", url="https://github.com/TechifyBots"),
+                [InlineKeyboardButton("🔗 Repo", url="https://github.com/&"),
                  InlineKeyboardButton("💸 Donate", callback_data="donate")],
                 [InlineKeyboardButton("🏠 Home", callback_data="start")]
             ])
@@ -139,7 +138,7 @@ async def callback(client, query: CallbackQuery):
             text=Txt.DONATE_TXT,
             disable_web_page_preview=True,
             reply_markup=InlineKeyboardMarkup([
-                [InlineKeyboardButton("🤖 More Bots", url="https://t.me/TechifyBots/8")],
+                [InlineKeyboardButton("🤖 More Bots", url="https://t.me/movie_channel8/8")],
                 [InlineKeyboardButton("🔙 Back", callback_data="about"),
                  InlineKeyboardButton("❌ Close", callback_data="close")]
             ])

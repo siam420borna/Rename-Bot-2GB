@@ -7,6 +7,14 @@ from helper.database import (
 )
 import os
 import subprocess
+from PIL import Image, ImageEnhance, ImageDraw, ImageFont
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from helper.database import (
+    jishubotz,
+    set_watermark, get_watermark, del_watermark,
+    set_watermark_size, get_watermark_size
+)
 
 
 @Client.on_message(filters.private & filters.command(['view_thumb', 'viewthumb']))
@@ -115,9 +123,7 @@ async def add_thumbnail(client, message):
 
         # Only Premium users get watermark text
         is_prem = await jishubotz.is_premium(message.from_user.id)
-        watermark_text = await get_watermark(message.from_user.id)
-        if not is_prem:
-            watermark_text = None
+        watermark_text = await get_watermark(message.from_user.id) if is_prem else None
 
         if watermark_text:
             draw = ImageDraw.Draw(main_image)

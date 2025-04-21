@@ -1,60 +1,75 @@
 import os, sys, time, asyncio
 from pyrogram import Client, filters
-from pyrogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery
-from config import Config
+from pyrogram.types import Message
 from helper.database import jishubotz
-from pyrogram.errors import FloodWait, InputUserDeactivated, UserIsBlocked, PeerIdInvalid
+import asyncio
+import time
 
-@Client.on_message(filters.command("admin") & filters.user(Config.ADMIN))
-async def admin_panel(_, m: Message):
-    buttons = [
-        [
-            InlineKeyboardButton("📊 স্ট্যাটাস", callback_data="status"),
-            InlineKeyboardButton("🔁 রিস্টার্ট", callback_data="restart"),
-        ],
-        [
-            InlineKeyboardButton("📣 ব্রডকাস্ট", callback_data="broadcast"),
-            InlineKeyboardButton("🏆 প্রিমিয়াম", callback_data="premium_menu"),
-        ],
-    ]
-    await m.reply("**অ্যাডমিন কন্ট্রোল প্যানেল**", reply_markup=InlineKeyboardMarkup(buttons))
+ADMIN_ID = 123456789  # change this to your Telegram user ID
+
+@Client.on_message(filters.private & filters.command("status"))
+async def status_handler(client, message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return await message.reply("⛔ You're not authorized to use this command.")
+    
+    total_users = await jishubotz.total_users()
+    total_premium = await jishubotz.total_premium_users()
+    await message.reply_text(f"👥 Total Users: `{total_users}`\n⭐ Premium Users: `{total_premium}`")
 
 
-@Client.on_callback_query(filters.user(Config.ADMIN))
-async def admin_cb_handler(_, query: CallbackQuery):
-    data = query.data
-
-    if data == "status":
-        total_users = await jishubotz.total_users_count()
-        uptime = time.strftime("%Hh%Mm%Ss", time.gmtime(time.time() - _.uptime))
-        await query.message.edit(
-            f"**--বট স্ট্যাটাস--**\n\n⌚ **আপটাইম:** `{uptime}`\n👥 **মোট ইউজার:** `{total_users}`"
-        )
-
-    elif data == "restart":
-        await query.message.edit("♻️ বট রিস্টার্ট হচ্ছে...")
-        await asyncio.sleep(2)
-        os.execl(sys.executable, sys.executable, *sys.argv)
-
-    elif data == "broadcast":
-        await query.message.edit("✉️ যে মেসেজটা পাঠাতে চাও, সেটার রিপ্লাই দাও এই মেসেজটার উপরে।")
-
-    elif data == "premium_menu":
-        buttons = [
-            [
-                InlineKeyboardButton("➕ অ্যাড প্রিমিয়াম", callback_data="add_premium"),
-                InlineKeyboardButton("➖ রিমুভ প্রিমিয়াম", callback_data="del_premium"),
-            ]
-        ]
-        await query.message.edit("**প্রিমিয়াম ইউজার কন্ট্রোল**", reply_markup=InlineKeyboardMarkup(buttons))
-
-    await query.answer()
+@Client.on_message(filters.private & filters.command("restart"))
+async def restart_handler(client, message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return await message.reply("⛔ You're not authorized to use this command.")
+    
+    await message.reply_text("♻️ Restarting...")
+    await asyncio.sleep(2)
+    exit(0)
 
 
-@Client.on_callback_query(filters.regex("add_premium") & filters.user(Config.ADMIN))
-async def ask_add_premium(_, query: CallbackQuery):
-    await query.message.edit("➕ ইউজার আইডি দিন প্রিমিয়াম অ্যাড করার জন্য। `/addpremium user_id`")
+@Client.on_message(filters.private & filters.command("broadcast"))
+async def broadcast_handler(client, message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return await message.reply("⛔ You're not authorized to use this command.")
+    
+    if not message.reply_to_message:
+        return await message.reply("❗ Reply to a message to broadcast it.")
+    
+    users = await jishubotz.get_all_users()
+    sent, failed = 0, 0
 
-@Client.on_callback_query(filters.regex("del_premium") & filters.user(Config.ADMIN))
-async def ask_del_premium(_, query: CallbackQuery):
-    await query.message.edit("➖ ইউজার আইডি দিন প্রিমিয়াম রিমুভ করার জন্য। `/delpremium user_id`")
+    for user_id in users:
+        try:
+            await client.copy_message(user_id, message.chat.id, message.reply_to_message.message_id)
+            sent += 1
+            await asyncio.sleep(0.05)
+        except:
+            failed += 1
+
+    await message.reply_text(f"✅ Broadcast completed!\n\nSent: `{sent}`\nFailed: `{failed}`")
+
+
+@Client.on_message(filters.private & filters.command("addpremium"))
+async def add_premium(client, message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return await message.reply("⛔ You're not authorized to use this command.")
+    
+    if len(message.command) < 2 or not message.command[1].isdigit():
+        return await message.reply("❗ Usage:\n`/addpremium user_id`")
+
+    user_id = int(message.command[1])
+    await jishubotz.add_premium(user_id)
+    await message.reply_text(f"✅ Added premium to `{user_id}`")
+
+
+@Client.on_message(filters.private & filters.command("delpremium"))
+async def del_premium(client, message: Message):
+    if message.from_user.id != ADMIN_ID:
+        return await message.reply("⛔ You're not authorized to use this command.")
+    
+    if len(message.command) < 2 or not message.command[1].isdigit():
+        return await message.reply("❗ Usage:\n`/delpremium user_id`")
+
+    user_id = int(message.command[1])
+    await jishubotz.remove_premium(user_id)
+    await message.reply_text(f"✅ Removed premium from `{user_id}`")

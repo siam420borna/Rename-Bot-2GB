@@ -56,7 +56,8 @@ async def delete_watermark_text(client, message: Message):
 @Client.on_message(filters.private & filters.command("preview_watermark"))
 async def preview_watermark(client, message: Message):
     text = await get_watermark(message.from_user.id)
-    font_size = await get_watermark_size(message.from_user.id) or 36
+    font_size = await get_watermark_size(message.from_user.id)
+    font_size = int(font_size) if font_size else 36
 
     if not text:
         return await message.reply_text("⚠️ You haven't set any watermark text yet.")
@@ -84,10 +85,11 @@ async def preview_watermark(client, message: Message):
 async def add_thumbnail(client, message):
     processing_msg = await message.reply_text("⏳ Processing your thumbnail...")
 
+    file_path, thumb_path, final_path = None, None, None
+
     try:
         file_path = await message.download(file_name=f"{message.from_user.id}_temp")
 
-        # Generate thumbnail for video
         if message.video:
             thumb_path = f"{file_path}_thumb.jpg"
             subprocess.run([
@@ -98,23 +100,24 @@ async def add_thumbnail(client, message):
         else:
             thumb_path = file_path
 
-        # Open image and logo
         main_image = Image.open(thumb_path).convert("RGBA")
         logo = Image.open("logo.png").convert("RGBA")
 
-        # Resize and fade logo
         w, h = main_image.size
         logo_size = int(w * 0.1)
-        logo = logo.resize((logo_size, logo_size))
-        alpha = ImageEnhance.Brightness(logo.split()[3]).enhance(0.6)
-        logo.putalpha(alpha)
+        logo = logo.resize((logo_size, logo_size), Image.LANCZOS)
+
+        logo_alpha = logo.split()[3]
+        logo_alpha = ImageEnhance.Brightness(logo_alpha).enhance(0.6)
+        logo.putalpha(logo_alpha)
+
         main_image.paste(logo, (w - logo_size - 15, 15), logo)
 
-        # Watermark text
         watermark_text = await get_watermark(message.from_user.id)
         if watermark_text:
             draw = ImageDraw.Draw(main_image)
-            font_size = await get_watermark_size(message.from_user.id) or 36
+            font_size = await get_watermark_size(message.from_user.id)
+            font_size = int(font_size) if font_size else 36
             try:
                 font = ImageFont.truetype("arial.ttf", size=font_size)
             except:
@@ -125,7 +128,6 @@ async def add_thumbnail(client, message):
             text_h = bbox[3] - bbox[1]
             draw.text((15, h - text_h - 15), watermark_text, font=font, fill=(255, 255, 255, 180))
 
-        # Save and send
         final_path = f"thumb_{message.from_user.id}.jpg"
         main_image.convert("RGB").save(final_path, "JPEG", quality=95)
 
@@ -143,8 +145,5 @@ async def add_thumbnail(client, message):
 
     finally:
         for path in [file_path, thumb_path, final_path]:
-            if os.path.exists(path):
+            if path and os.path.exists(path):
                 os.remove(path)
-
-
-

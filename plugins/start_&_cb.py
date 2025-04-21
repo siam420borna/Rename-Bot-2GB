@@ -60,7 +60,13 @@ Even a small amount is appreciated!
     SEND_METADATA = "**📝 Send your custom metadata (Title, Artist, etc).**"
     PREFIX = "**✍ Send a prefix to add before filename.**"
     SUFFIX = "**✍ Send a suffix to add after filename.**"
-    CAPTION_TXT = "**🖋 Send a custom caption (use {filename} to include file name).**"
+    CAPTION_TXT = "**🖋 Send a custom caption (use {filename} to include file name).
+
+Eg: /set_caption {filename}
+
+💾 Sɪᴢᴇ: {filesize}
+
+⏰ Dᴜʀᴀᴛɪᴏɴ: {duration}**"
     THUMBNAIL_TXT = "**🖼 Send an image to set as custom thumbnail.**"
 
 

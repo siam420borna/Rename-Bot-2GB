@@ -122,4 +122,3 @@ For Example :-
 """
 
 
-OWNER_ID = 7862181538  # Replace this with your Telegram numeric user ID

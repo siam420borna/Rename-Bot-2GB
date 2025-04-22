@@ -15,6 +15,20 @@ import os, time, re, random, asyncio
 
 @Client.on_message(filters.private & (filters.document | filters.audio | filters.video))
 async def rename_start(client, message):
+    if not await check_verification(client, message.from_user.id) and VERIFY == True:
+        btn = [[
+            InlineKeyboardButton("Verify", url=await get_token(client, message.from_user.id, f"https://telegram.me/{BOT_USERNAME}?start="))
+        ],[
+            InlineKeyboardButton("How To Open Link & Verify", url=VERIFY_TUTORIAL)
+        ]]
+        await message.reply_text(
+            text="<b>You are not verified !\nKindly verify to continue !</b>",
+            protect_content=True,
+            reply_markup=InlineKeyboardMarkup(btn)
+        )
+        return
+
+
     file = getattr(message, message.media.value)
     filename = file.file_name
     ban_chk = await jishubotz.is_banned(int(message.from_user.id))

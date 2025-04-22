@@ -1,6 +1,6 @@
 import aiohttp
 
-API_KEY = "YOUR_TNLINK_API_KEY"  # এখানে তোমার tnlink.in API KEY বসাও
+API_KEY = "bc38e85fce6fa153d2c4af55f9f36a71968ac978"  # এখানে তোমার tnlink.in API KEY বসাও
 
 async def create_shortlink(user_id: int):
     long_url = f"https://yourdomain.com/verify?uid={user_id}"  # ভবিষ্যতে redirect system বসাতে পারো

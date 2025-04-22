@@ -154,3 +154,4 @@ class Database:
 
 # Instantiate the database
 db = Database(Config.DB_URL, Config.DB_NAME)
+jishubotz = db

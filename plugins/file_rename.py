@@ -11,7 +11,8 @@ from asyncio import sleep
 from PIL import Image
 from config import Config
 import os, time, re, random, asyncio
-
+from utils import check_verification, get_token
+from info import VERIFY, VERIFY_TUTORIAL, BOT_USERNAME
 
 @Client.on_message(filters.private & (filters.document | filters.audio | filters.video))
 async def rename_start(client, message):

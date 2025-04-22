@@ -155,3 +155,23 @@ async def is_premium_enabled(self) -> bool:
 # Premium System ON/OFF করা
 async def toggle_premium(self, status: bool):
     await self.config_col.update_one({"_id": "premium_system"}, {"$set": {"enabled": status}}, upsert=True)
+
+
+
+# config নামের কালেকশন ধরো এখানে
+from motor.motor_asyncio import AsyncIOMotorClient
+
+client = AsyncIOMotorClient(DB_URL)
+db = client[DB_NAME]
+config = db["config"]
+
+async def is_premium_enabled():
+    doc = await config.find_one({"_id": "premium_config"})
+    return doc and doc.get("enabled", False)
+
+async def set_premium_enabled(status: bool):
+    await config.update_one(
+        {"_id": "premium_config"},
+        {"$set": {"enabled": status}},
+        upsert=True
+    )

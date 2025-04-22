@@ -1,7 +1,9 @@
 import motor.motor_asyncio
 from config import Config
 from .utils import send_log
-
+from config import Config
+DB_URL = Config.DB_URL
+DB_NAME = Config.DB_NAME
 
 class Database:
     def __init__(self, uri, database_name):

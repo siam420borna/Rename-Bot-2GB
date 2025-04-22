@@ -5,11 +5,10 @@ from PIL import Image, ImageEnhance, ImageDraw, ImageFont
 from helper.database import (
     jishubotz, set_watermark, get_watermark, del_watermark,
     set_watermark_size, get_watermark_size,
-    get_verified_token  # এই লাইনটা যোগ কর
+    get_verified_token  # Token checker added
 )
 import os
 import subprocess
-
 
 LOG_CHANNEL = -1002589776901
 
@@ -89,6 +88,16 @@ async def preview_watermark(client, message: Message):
 
 @Client.on_message(filters.private & (filters.photo | filters.video))
 async def add_thumbnail(client, message):
+    # ✅ Token Verification Check
+    is_verified = await get_verified_token(message.from_user.id)
+    if not is_verified:
+        return await message.reply_text(
+            "🔒 আপনার অ্যাকাউন্ট এখনও ভেরিফাই হয়নি!\n\n"
+            "দয়া করে নিচের লিংকে যান এবং একটি অ্যাড দেখে ভেরিফাই করুন:\n"
+            "👉 https://tnlinks.in/X3trAsSG\n\n"
+            "তারপর আবার চেষ্টা করুন।"
+        )
+
     if message.media_group_id:
         return await message.reply_text("⚠️ Please send only **one** image or video at a time.")
 

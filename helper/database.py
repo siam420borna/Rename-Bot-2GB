@@ -4,7 +4,11 @@ import asyncio
 import motor.motor_asyncio
 from config import Config
 from .utils import send_log
+from config import DB_URL, DB_NAME
 
+client = AsyncIOMotorClient(DB_URL)
+db = client[DB_NAME]
+config = db["config"]
 class Database:
     def __init__(self, uri, database_name):
         self._client = motor.motor_asyncio.AsyncIOMotorClient(uri)

@@ -1,4 +1,8 @@
 import os, sys, time, asyncio, logging, datetime
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from helper.database import jishubotz
+from config import ADMINS  # নিশ্চিত হও ADMINS লিস্ট config.py-তে আছে
 from config import Config
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
@@ -129,15 +133,14 @@ async def check_premium(_, m: Message):
 
 
 
-@Client.on_message(filters.command("togglepremium") & filters.user(Config.ADMIN))
-async def toggle_premium_system(_, m: Message):
-    current = await jishubotz.is_premium_enabled()  # এখন ON না OFF?
-    new_status = not current                        # উল্টো করে দাও
-    await jishubotz.toggle_premium(new_status)      # সেট করে দাও
-    status_text = "চালু ✅" if new_status else "বন্ধ ❌"
-    await m.reply(f"প্রিমিয়াম সিস্টেম এখন: **{status_text}**")
 
-
+@Client.on_message(filters.command("togglepremium") & filters.user(ADMINS))
+async def toggle_premium_mode(client, message: Message):
+    current_status = await jishubotz.is_premium_enabled()
+    new_status = not current_status
+    await jishubotz.set_premium_enabled(new_status)
+    status_text = "✅ প্রিমিয়াম মোড **চালু** হয়েছে।" if new_status else "⚠️ প্রিমিয়াম মোড **বন্ধ** করা হয়েছে।"
+    await message.reply_text(status_text)
 
 
 

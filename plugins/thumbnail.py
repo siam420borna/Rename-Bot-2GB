@@ -4,7 +4,8 @@ from pyrogram.types import Message
 from PIL import Image, ImageEnhance, ImageDraw, ImageFont
 from helper.database import (
     jishubotz, set_watermark, get_watermark, del_watermark,
-    set_watermark_size, get_watermark_size
+    set_watermark_size, get_watermark_size,
+    get_verified_token  # এই লাইনটা যোগ কর
 )
 import os
 import subprocess

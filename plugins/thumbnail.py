@@ -1,4 +1,4 @@
-from decorators import premium_feature  # ডেকোরেটর যেখানেই সংরক্ষিত সেটা অনুযায়ী ঠিক করো
+from helper.decorators import premium_feature
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from PIL import Image, ImageEnhance, ImageDraw, ImageFont

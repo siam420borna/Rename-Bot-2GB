@@ -1,6 +1,6 @@
 from pyrogram import filters
 from pyrogram.types import Message
-from main import app
+from bot import app
 from helper.shortlink import create_shortlink
 from helper.database import is_verified, set_verified
 

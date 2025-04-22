@@ -19,3 +19,10 @@ async def check_token_or_premium(client, message: Message):
             [[InlineKeyboardButton("✅ টোকেন ভেরিফাই করুন", url=f"https://tnlinks.in/X3trAsSG?user_id={user_id}")]]
         )
     )
+
+
+@Client.on_message(filters.private & filters.command("verify"))
+async def verify_token_command(client, message: Message):
+    user_id = message.from_user.id
+    await db.set_verified_token(user_id)
+    await message.reply_text("✅ আপনি সফলভাবে টোকেন ভেরিফাই করেছেন। এখন ভিডিও রিনেম করতে পারবেন।")

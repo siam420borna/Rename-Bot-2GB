@@ -2,6 +2,7 @@ from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardButton, InlineKeyboardMarkup, CallbackQuery, Message
 from helper.database import jishubotz, set_watermark, get_watermark, del_watermark
 from config import Config
+from utils import verify_user, check_token
 
 class Txt:
     START_TXT = """

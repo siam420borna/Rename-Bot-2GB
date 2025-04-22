@@ -134,13 +134,25 @@ async def check_premium(_, m: Message):
 
 
 
+
+
+
+
+
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from config import ADMINS
+from helper.database import is_premium_enabled, set_premium_enabled
+
 @Client.on_message(filters.command("togglepremium") & filters.user(ADMINS))
 async def toggle_premium_mode(client, message: Message):
-    current_status = await jishubotz.is_premium_enabled()
-    new_status = not current_status
-    await jishubotz.set_premium_enabled(new_status)
-    status_text = "✅ প্রিমিয়াম মোড **চালু** হয়েছে।" if new_status else "⚠️ প্রিমিয়াম মোড **বন্ধ** করা হয়েছে।"
-    await message.reply_text(status_text)
+    current = await is_premium_enabled()
+    await set_premium_enabled(not current)
+    if not current:
+        await message.reply("✅ প্রিমিয়াম মোড **চালু** করা হয়েছে। এখন শুধু প্রিমিয়াম ইউজাররা বিশেষ ফিচার ব্যবহার করতে পারবে।")
+    else:
+        await message.reply("⚠️ প্রিমিয়াম মোড **বন্ধ** করা হয়েছে। এখন সবাই সব ফিচার ব্যবহার করতে পারবে।")
+
 
 
 

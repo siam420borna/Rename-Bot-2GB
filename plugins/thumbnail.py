@@ -1,3 +1,4 @@
+from decorators import premium_feature  # ডেকোরেটর যেখানেই সংরক্ষিত সেটা অনুযায়ী ঠিক করো
 from pyrogram import Client, filters
 from pyrogram.types import Message
 from PIL import Image, ImageEnhance, ImageDraw, ImageFont
@@ -25,6 +26,7 @@ async def delete_thumb(client, message):
 
 
 @Client.on_message(filters.private & filters.command("set_watermark"))
+@premium_feature
 async def set_watermark_text(client, message: Message):
     if len(message.command) < 2:
         return await message.reply_text("❗ Usage:\n`/set_watermark YourTextHere`")

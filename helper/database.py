@@ -145,10 +145,15 @@ async def get_watermark_size(user_id):
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)
 db = jishubotz.jishubotz
 
-# Token Verification System
+# Token Verification Functions
+
 async def get_verified_token(user_id: int) -> bool:
     user = await user_data.find_one({"_id": user_id})
     return user.get("token_verified", False) if user else False
 
 async def set_verified_token(user_id: int):
-    await user_data.update_one({"_id": user_id}, {"$set": {"token_verified": True}}, upsert=True)
+    await user_data.update_one(
+        {"_id": user_id},
+        {"$set": {"token_verified": True}},
+        upsert=True
+    )

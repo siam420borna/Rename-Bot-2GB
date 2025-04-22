@@ -144,3 +144,14 @@ async def get_watermark_size(user_id):
 # Instantiate
 jishubotz = Database(Config.DB_URL, Config.DB_NAME)
 db = jishubotz.jishubotz
+
+
+
+# Premium System ON আছে কিনা চেক করা
+async def is_premium_enabled(self) -> bool:
+    data = await self.config_col.find_one({"_id": "premium_system"})
+    return data and data.get("enabled", False)
+
+# Premium System ON/OFF করা
+async def toggle_premium(self, status: bool):
+    await self.config_col.update_one({"_id": "premium_system"}, {"$set": {"enabled": status}}, upsert=True)

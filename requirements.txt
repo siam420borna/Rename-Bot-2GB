@@ -9,3 +9,4 @@ aiohttp
 pytz
 Flask
 gunicorn
+shortzy

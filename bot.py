@@ -11,12 +11,6 @@ import pyromod
 from pyrogram import filters
 from pyrogram.types import Message
 
-
-
-
-
-
-
 # -----------------------------
 # Logging All Private Messages
 # -----------------------------
@@ -42,7 +36,6 @@ pyrogram.utils.MIN_CHANNEL_ID = -1009999999999
 # Bot Class
 # -----------------------------
 class Bot(Client):
-
     def __init__(self):
         super().__init__(
             name="renamer",
@@ -58,23 +51,23 @@ class Bot(Client):
         await super().start()
         me = await self.get_me()
         self.mention = me.mention
-        self.username = me.username  
-        self.uptime = Config.BOT_UPTIME     
+        self.username = me.username
+        self.uptime = Config.BOT_UPTIME
 
         if Config.WEBHOOK:
-            app = web.AppRunner(await web_server())
-            await app.setup()
-            PORT = int(os.environ.get("PORT", 8000))  # Default port is 8000
-            await web.TCPSite(app, "0.0.0.0", PORT).start()
+            app_runner = web.AppRunner(await web_server())
+            await app_runner.setup()
+            PORT = int(os.environ.get("PORT", 8000))
+            await web.TCPSite(app_runner, "0.0.0.0", PORT).start()
 
         print(f"{me.first_name} Is Started.....✨️")
 
         for id in Config.ADMIN:
-            try: 
-                await self.send_message(id, f"**{me.first_name} Is Started...**")                                
+            try:
+                await self.send_message(id, f"**{me.first_name} Is Started...**")
             except Exception as e:
                 print(f"Error sending message to admin {id}: {e}")
-        
+
         if Config.LOG_CHANNEL:
             try:
                 curr = datetime.now(timezone("Asia/Kolkata"))
@@ -83,33 +76,22 @@ class Bot(Client):
                 await self.send_message(
                     Config.LOG_CHANNEL,
                     f"**{me.mention} Is Restarted !!**\n\n📅 Date : `{date}`\n⏰ Time : `{time}`\n🌐 Timezone : `Asia/Kolkata`\n\n🉐 Version : `v{__version__} (Layer {layer})`"
-                )                                
+                )
             except Exception as e:
                 print(f"Error sending message to LOG_CHANNEL: {e}")
 
-    async def stop(self):
+    async def stop(self, *args):
         await super().stop()
         print(f"{self.mention} is stopped.")
 
 
-
-
-
-
-
-
-#gpt
-
-
-
-
-
-
-
-
-
+# -----------------------------
+# Create App Instance
+# -----------------------------
+app = Bot()
 
 # -----------------------------
 # Run the Bot
 # -----------------------------
-Bot().run()
+if __name__ == "__main__":
+    app.run()

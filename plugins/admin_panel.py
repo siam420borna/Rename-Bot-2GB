@@ -129,6 +129,21 @@ async def check_premium(_, m: Message):
 
 
 
+@Client.on_message(filters.command("togglepremium") & filters.user(Config.ADMIN))
+async def toggle_premium_system(_, m: Message):
+    current = await jishubotz.is_premium_enabled()  # এখন ON না OFF?
+    new_status = not current                        # উল্টো করে দাও
+    await jishubotz.toggle_premium(new_status)      # সেট করে দাও
+    status_text = "চালু ✅" if new_status else "বন্ধ ❌"
+    await m.reply(f"প্রিমিয়াম সিস্টেম এখন: **{status_text}**")
+
+
+
+
+
+
+
+
 # Ban command remains unchanged
 # Unban command remains unchanged
 # You can include them again if needed

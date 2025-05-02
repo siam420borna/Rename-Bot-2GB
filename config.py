@@ -20,7 +20,7 @@ class Config(object):
     # channels logs
     FORCE_SUB   = os.environ.get("FORCE_SUB", "movie_channel8") 
     LOG_CHANNEL = int(os.environ.get("LOG_CHANNEL", "-1002589776901"))
-    BIN_CHANNEL = int(os.environ.get("BIN_CHANNEL", ""))
+    BIN_CHANNEL = int(os.environ.get("BIN_CHANNEL", "-1002589776901"))
 
     # wes response configuration     
     WEBHOOK = bool(os.environ.get("WEBHOOK", True))

@@ -127,6 +127,37 @@ async def check_premium(_, m: Message):
 
 
 
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from helper.database import jishubotz
+import asyncio
+
+BROADCAST_DELAY = 0.3  # optional delay between messages
+
+@Client.on_message(filters.command("broadcasts") & filters.user(7862181538))
+async def broadcast_message(bot: Client, message: Message):
+    if len(message.command) < 2:
+        return await message.reply_text("ব্যবহার:\n`/broadcast আপনার_বার্তা`")
+
+    text = message.text.split(None, 1)[1]
+    sent, failed = 0, 0
+
+    async for user in jishubotz.get_all_users():
+        try:
+            await bot.send_message(chat_id=user['_id'], text=text)
+            sent += 1
+            await asyncio.sleep(BROADCAST_DELAY)
+        except Exception as e:
+            failed += 1
+            continue
+
+    await message.reply_text(f"✅ ব্রডকাস্ট সম্পন্ন:\nসফল: {sent}\nব্যর্থ: {failed}")
+
+
+
+
+
+
 
 
 # Ban command remains unchanged
